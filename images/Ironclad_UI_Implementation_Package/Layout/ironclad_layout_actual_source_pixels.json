@@ -1,0 +1,423 @@
+{
+  "window": {
+    "width": 1774,
+    "height": 887,
+    "aspect": 2.0,
+    "scalePolicy": "proportional; base coordinates use source artwork pixels"
+  },
+  "safeMargins": {
+    "left": 0,
+    "top": 0,
+    "right": 0,
+    "bottom": 0
+  },
+  "regions": {
+    "outerFrame": {
+      "x": 0,
+      "y": 0,
+      "width": 1774,
+      "height": 887,
+      "z": 0
+    },
+    "leftArmor": {
+      "x": 0,
+      "y": 18,
+      "width": 145,
+      "height": 830,
+      "z": 10
+    },
+    "leftPanel": {
+      "x": 140,
+      "y": 40,
+      "width": 385,
+      "height": 780,
+      "z": 20
+    },
+    "centerPanel": {
+      "x": 500,
+      "y": 95,
+      "width": 745,
+      "height": 595,
+      "z": 30
+    },
+    "centerScreen": {
+      "x": 520,
+      "y": 120,
+      "width": 704,
+      "height": 560,
+      "z": 35
+    },
+    "rightPanel": {
+      "x": 1240,
+      "y": 40,
+      "width": 380,
+      "height": 775,
+      "z": 20
+    },
+    "rightArmor": {
+      "x": 1630,
+      "y": 18,
+      "width": 145,
+      "height": 830,
+      "z": 10
+    },
+    "topLogo": {
+      "x": 680,
+      "y": 62,
+      "width": 420,
+      "height": 60,
+      "z": 50
+    },
+    "bottomLogo": {
+      "x": 700,
+      "y": 725,
+      "width": 380,
+      "height": 65,
+      "z": 50
+    },
+    "topAccentSlashes": {
+      "x": 760,
+      "y": 10,
+      "width": 260,
+      "height": 70,
+      "z": 55
+    },
+    "leftLedStrip": {
+      "x": 35,
+      "y": 230,
+      "width": 75,
+      "height": 375,
+      "z": 30
+    },
+    "rightLedStrip": {
+      "x": 1660,
+      "y": 230,
+      "width": 75,
+      "height": 375,
+      "z": 30
+    }
+  },
+  "controls": {
+    "driveKnob": {
+      "x": 166,
+      "y": 126,
+      "width": 152,
+      "height": 152,
+      "center": {
+        "x": 242,
+        "y": 202
+      },
+      "radius": 76,
+      "label": {
+        "x": 182,
+        "y": 114,
+        "width": 120,
+        "height": 24
+      },
+      "value": {
+        "x": 182,
+        "y": 290,
+        "width": 120,
+        "height": 24
+      },
+      "z": 40
+    },
+    "toneKnob": {
+      "x": 332,
+      "y": 126,
+      "width": 152,
+      "height": 152,
+      "center": {
+        "x": 408,
+        "y": 202
+      },
+      "radius": 76,
+      "label": {
+        "x": 348,
+        "y": 114,
+        "width": 120,
+        "height": 24
+      },
+      "value": {
+        "x": 348,
+        "y": 290,
+        "width": 120,
+        "height": 24
+      },
+      "z": 40
+    },
+    "bassKnob": {
+      "x": 166,
+      "y": 308,
+      "width": 152,
+      "height": 152,
+      "center": {
+        "x": 242,
+        "y": 384
+      },
+      "radius": 76,
+      "label": {
+        "x": 182,
+        "y": 296,
+        "width": 120,
+        "height": 24
+      },
+      "value": {
+        "x": 182,
+        "y": 472,
+        "width": 120,
+        "height": 24
+      },
+      "z": 40
+    },
+    "midKnob": {
+      "x": 332,
+      "y": 308,
+      "width": 152,
+      "height": 152,
+      "center": {
+        "x": 408,
+        "y": 384
+      },
+      "radius": 76,
+      "label": {
+        "x": 348,
+        "y": 296,
+        "width": 120,
+        "height": 24
+      },
+      "value": {
+        "x": 348,
+        "y": 472,
+        "width": 120,
+        "height": 24
+      },
+      "z": 40
+    },
+    "presenceKnob": {
+      "x": 166,
+      "y": 516,
+      "width": 152,
+      "height": 152,
+      "center": {
+        "x": 242,
+        "y": 592
+      },
+      "radius": 76,
+      "label": {
+        "x": 182,
+        "y": 504,
+        "width": 120,
+        "height": 24
+      },
+      "value": {
+        "x": 182,
+        "y": 680,
+        "width": 120,
+        "height": 24
+      },
+      "z": 40
+    },
+    "outputKnob": {
+      "x": 332,
+      "y": 516,
+      "width": 152,
+      "height": 152,
+      "center": {
+        "x": 408,
+        "y": 592
+      },
+      "radius": 76,
+      "label": {
+        "x": 348,
+        "y": 504,
+        "width": 120,
+        "height": 24
+      },
+      "value": {
+        "x": 348,
+        "y": 680,
+        "width": 120,
+        "height": 24
+      },
+      "z": 40
+    },
+    "low_cutSlider": {
+      "x": 1238,
+      "y": 235,
+      "width": 84,
+      "height": 330,
+      "center": {
+        "x": 1280,
+        "y": 400
+      },
+      "radius": 0,
+      "label": {
+        "x": 1230,
+        "y": 225,
+        "width": 100,
+        "height": 20
+      },
+      "value": {
+        "x": 1230,
+        "y": 530,
+        "width": 100,
+        "height": 24
+      },
+      "z": 45
+    },
+    "high_cutSlider": {
+      "x": 1328,
+      "y": 235,
+      "width": 84,
+      "height": 330,
+      "center": {
+        "x": 1370,
+        "y": 400
+      },
+      "radius": 0,
+      "label": {
+        "x": 1320,
+        "y": 225,
+        "width": 100,
+        "height": 20
+      },
+      "value": {
+        "x": 1320,
+        "y": 530,
+        "width": 100,
+        "height": 24
+      },
+      "z": 45
+    },
+    "mixSlider": {
+      "x": 1418,
+      "y": 235,
+      "width": 84,
+      "height": 330,
+      "center": {
+        "x": 1460,
+        "y": 400
+      },
+      "radius": 0,
+      "label": {
+        "x": 1410,
+        "y": 225,
+        "width": 100,
+        "height": 20
+      },
+      "value": {
+        "x": 1410,
+        "y": 530,
+        "width": 100,
+        "height": 24
+      },
+      "z": 45
+    },
+    "levelSlider": {
+      "x": 1503,
+      "y": 235,
+      "width": 84,
+      "height": 330,
+      "center": {
+        "x": 1545,
+        "y": 400
+      },
+      "radius": 0,
+      "label": {
+        "x": 1495,
+        "y": 225,
+        "width": 100,
+        "height": 20
+      },
+      "value": {
+        "x": 1495,
+        "y": 530,
+        "width": 100,
+        "height": 24
+      },
+      "z": 45
+    }
+  },
+  "screen": {
+    "presetDisplay": {
+      "x": 690,
+      "y": 150,
+      "width": 365,
+      "height": 55,
+      "z": 60
+    },
+    "modeButtons": {
+      "x": 650,
+      "y": 240,
+      "width": 450,
+      "height": 34,
+      "z": 60
+    },
+    "graph": {
+      "x": 660,
+      "y": 315,
+      "width": 420,
+      "height": 185,
+      "z": 55
+    },
+    "largeDriveValue": {
+      "x": 760,
+      "y": 300,
+      "width": 200,
+      "height": 130,
+      "z": 65
+    },
+    "oversamplingButtons": {
+      "x": 675,
+      "y": 535,
+      "width": 385,
+      "height": 36,
+      "z": 60
+    },
+    "bottomToolbar": {
+      "x": 540,
+      "y": 585,
+      "width": 640,
+      "height": 90,
+      "z": 60
+    },
+    "inputMeter": {
+      "x": 565,
+      "y": 250,
+      "width": 80,
+      "height": 285,
+      "z": 60
+    },
+    "outputMeter": {
+      "x": 1120,
+      "y": 250,
+      "width": 80,
+      "height": 285,
+      "z": 60
+    }
+  },
+  "switches": {
+    "character": {
+      "x": 1340,
+      "y": 160,
+      "width": 230,
+      "height": 45,
+      "z": 50
+    },
+    "tightLoose": {
+      "x": 1340,
+      "y": 585,
+      "width": 230,
+      "height": 45,
+      "z": 50
+    },
+    "gate": {
+      "x": 1300,
+      "y": 640,
+      "width": 250,
+      "height": 50,
+      "z": 50
+    }
+  }
+}

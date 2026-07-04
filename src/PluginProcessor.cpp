@@ -47,12 +47,32 @@ juce::AudioProcessorValueTreeState::ParameterLayout IroncladProcessor::createPar
         juce::NormalisableRange<float>(20.0f, 500.0f, 1.0f, 0.5f), 80.0f));
 
     params.push_back(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID("HIGHCUT", 1), "High Cut",
+        juce::NormalisableRange<float>(1000.0f, 20000.0f, 1.0f, 0.35f), 20000.0f,
+        juce::AudioParameterFloatAttributes().withStringFromValueFunction(
+            [](float v, int) {
+                return v >= 1000.0f ? juce::String(v / 1000.0f, 1) + " kHz"
+                                    : juce::String((int) v) + " Hz";
+            })));
+
+    params.push_back(std::make_unique<juce::AudioParameterFloat>(
         juce::ParameterID("MIX", 1), "Dry/Wet",
         juce::NormalisableRange<float>(0.0f, 1.0f, 0.01f), 1.0f));
 
+    // OUTPUT is the wet makeup gain applied before the dry/wet mix (part of the
+    // amp). LEVEL is the final master trim in dB applied after the mix.
     params.push_back(std::make_unique<juce::AudioParameterFloat>(
         juce::ParameterID("OUTPUT", 1), "Output",
         juce::NormalisableRange<float>(0.0f, 2.0f, 0.01f), 1.0f));
+
+    params.push_back(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID("LEVEL", 1), "Level",
+        juce::NormalisableRange<float>(-24.0f, 12.0f, 0.1f), 0.0f,
+        juce::AudioParameterFloatAttributes().withStringFromValueFunction(
+            [](float v, int) { return juce::String(v, 1) + " dB"; })));
+
+    params.push_back(std::make_unique<juce::AudioParameterBool>(
+        juce::ParameterID("GATE", 1), "Gate", false));
 
     return { params.begin(), params.end() };
 }
@@ -149,8 +169,11 @@ void IroncladProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::Mid
     dp.treble   = apvts.getRawParameterValue("TREBLE")->load();
     dp.presence = apvts.getRawParameterValue("PRESENCE")->load();
     dp.tight    = apvts.getRawParameterValue("TIGHT")->load();
+    dp.highCut  = apvts.getRawParameterValue("HIGHCUT")->load();
     dp.mix      = apvts.getRawParameterValue("MIX")->load();
     dp.output   = apvts.getRawParameterValue("OUTPUT")->load();
+    dp.level    = juce::Decibels::decibelsToGain(apvts.getRawParameterValue("LEVEL")->load());
+    dp.gate     = apvts.getRawParameterValue("GATE")->load() > 0.5f;
 
     engine.setParameters(dp);
     engine.processBlock(buffer.getWritePointer(0),

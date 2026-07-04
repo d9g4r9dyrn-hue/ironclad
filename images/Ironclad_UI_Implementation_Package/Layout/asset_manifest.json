@@ -1,0 +1,938 @@
+[
+  {
+    "file": "Textures/Red_Brushed_Aluminum/red_panel_left_2x.png",
+    "source_box": {
+      "x": 140,
+      "y": 40,
+      "width": 385,
+      "height": 780
+    },
+    "export_px": {
+      "width": 770,
+      "height": 1560
+    }
+  },
+  {
+    "file": "Textures/Red_Brushed_Aluminum/red_panel_right_2x.png",
+    "source_box": {
+      "x": 1240,
+      "y": 40,
+      "width": 380,
+      "height": 775
+    },
+    "export_px": {
+      "width": 760,
+      "height": 1550
+    }
+  },
+  {
+    "file": "Textures/Black_Metal/outer_frame_top_2x.png",
+    "source_box": {
+      "x": 490,
+      "y": 12,
+      "width": 800,
+      "height": 115
+    },
+    "export_px": {
+      "width": 1600,
+      "height": 230
+    }
+  },
+  {
+    "file": "Textures/Black_Metal/bottom_trim_2x.png",
+    "source_box": {
+      "x": 470,
+      "y": 680,
+      "width": 840,
+      "height": 180
+    },
+    "export_px": {
+      "width": 1680,
+      "height": 360
+    }
+  },
+  {
+    "file": "Textures/Mesh/top_hex_grille_2x.png",
+    "source_box": {
+      "x": 476,
+      "y": 24,
+      "width": 800,
+      "height": 90
+    },
+    "export_px": {
+      "width": 1600,
+      "height": 180
+    }
+  },
+  {
+    "file": "Textures/Chrome/chrome_left_bevel_2x.png",
+    "source_box": {
+      "x": 96,
+      "y": 15,
+      "width": 70,
+      "height": 825
+    },
+    "export_px": {
+      "width": 140,
+      "height": 1650
+    }
+  },
+  {
+    "file": "Textures/Chrome/chrome_center_bezel_2x.png",
+    "source_box": {
+      "x": 510,
+      "y": 95,
+      "width": 730,
+      "height": 590
+    },
+    "export_px": {
+      "width": 1460,
+      "height": 1180
+    }
+  },
+  {
+    "file": "Textures/Rubber/left_armor_grip_2x.png",
+    "source_box": {
+      "x": 0,
+      "y": 20,
+      "width": 140,
+      "height": 830
+    },
+    "export_px": {
+      "width": 280,
+      "height": 1660
+    }
+  },
+  {
+    "file": "Textures/Rubber/right_armor_grip_2x.png",
+    "source_box": {
+      "x": 1630,
+      "y": 20,
+      "width": 140,
+      "height": 830
+    },
+    "export_px": {
+      "width": 280,
+      "height": 1660
+    }
+  },
+  {
+    "file": "Textures/Lighting/top_accent_slashes_2x.png",
+    "source_box": {
+      "x": 760,
+      "y": 10,
+      "width": 250,
+      "height": 70
+    },
+    "export_px": {
+      "width": 500,
+      "height": 140
+    }
+  },
+  {
+    "file": "Textures/Lighting/bottom_red_glow_2x.png",
+    "source_box": {
+      "x": 455,
+      "y": 760,
+      "width": 860,
+      "height": 55
+    },
+    "export_px": {
+      "width": 1720,
+      "height": 110
+    }
+  },
+  {
+    "file": "Textures/Lighting/left_vertical_led_2x.png",
+    "source_box": {
+      "x": 40,
+      "y": 250,
+      "width": 60,
+      "height": 340
+    },
+    "export_px": {
+      "width": 120,
+      "height": 680
+    }
+  },
+  {
+    "file": "Textures/Lighting/right_vertical_led_2x.png",
+    "source_box": {
+      "x": 1670,
+      "y": 250,
+      "width": 60,
+      "height": 340
+    },
+    "export_px": {
+      "width": 120,
+      "height": 680
+    }
+  },
+  {
+    "file": "Knobs/drive_knob_full_2x.png",
+    "source_box": {
+      "x": 166,
+      "y": 126,
+      "width": 152,
+      "height": 152
+    },
+    "export_px": {
+      "width": 304,
+      "height": 304
+    }
+  },
+  {
+    "file": "Knobs/drive_knob_core_2x.png",
+    "source_box": {
+      "x": 188,
+      "y": 148,
+      "width": 108,
+      "height": 108
+    },
+    "export_px": {
+      "width": 216,
+      "height": 216
+    }
+  },
+  {
+    "file": "Knobs/tone_knob_full_2x.png",
+    "source_box": {
+      "x": 332,
+      "y": 126,
+      "width": 152,
+      "height": 152
+    },
+    "export_px": {
+      "width": 304,
+      "height": 304
+    }
+  },
+  {
+    "file": "Knobs/tone_knob_core_2x.png",
+    "source_box": {
+      "x": 354,
+      "y": 148,
+      "width": 108,
+      "height": 108
+    },
+    "export_px": {
+      "width": 216,
+      "height": 216
+    }
+  },
+  {
+    "file": "Knobs/bass_knob_full_2x.png",
+    "source_box": {
+      "x": 166,
+      "y": 308,
+      "width": 152,
+      "height": 152
+    },
+    "export_px": {
+      "width": 304,
+      "height": 304
+    }
+  },
+  {
+    "file": "Knobs/bass_knob_core_2x.png",
+    "source_box": {
+      "x": 188,
+      "y": 330,
+      "width": 108,
+      "height": 108
+    },
+    "export_px": {
+      "width": 216,
+      "height": 216
+    }
+  },
+  {
+    "file": "Knobs/mid_knob_full_2x.png",
+    "source_box": {
+      "x": 332,
+      "y": 308,
+      "width": 152,
+      "height": 152
+    },
+    "export_px": {
+      "width": 304,
+      "height": 304
+    }
+  },
+  {
+    "file": "Knobs/mid_knob_core_2x.png",
+    "source_box": {
+      "x": 354,
+      "y": 330,
+      "width": 108,
+      "height": 108
+    },
+    "export_px": {
+      "width": 216,
+      "height": 216
+    }
+  },
+  {
+    "file": "Knobs/presence_knob_full_2x.png",
+    "source_box": {
+      "x": 166,
+      "y": 516,
+      "width": 152,
+      "height": 152
+    },
+    "export_px": {
+      "width": 304,
+      "height": 304
+    }
+  },
+  {
+    "file": "Knobs/presence_knob_core_2x.png",
+    "source_box": {
+      "x": 188,
+      "y": 538,
+      "width": 108,
+      "height": 108
+    },
+    "export_px": {
+      "width": 216,
+      "height": 216
+    }
+  },
+  {
+    "file": "Knobs/output_knob_full_2x.png",
+    "source_box": {
+      "x": 332,
+      "y": 516,
+      "width": 152,
+      "height": 152
+    },
+    "export_px": {
+      "width": 304,
+      "height": 304
+    }
+  },
+  {
+    "file": "Knobs/output_knob_core_2x.png",
+    "source_box": {
+      "x": 354,
+      "y": 538,
+      "width": 108,
+      "height": 108
+    },
+    "export_px": {
+      "width": 216,
+      "height": 216
+    }
+  },
+  {
+    "file": "Knobs/tick_marks_overlay_left_top_2x.png",
+    "source_box": {
+      "x": 160,
+      "y": 125,
+      "width": 160,
+      "height": 160
+    },
+    "export_px": {
+      "width": 320,
+      "height": 320
+    }
+  },
+  {
+    "file": "Screen/display_panel_full_2x.png",
+    "source_box": {
+      "x": 520,
+      "y": 120,
+      "width": 704,
+      "height": 560
+    },
+    "export_px": {
+      "width": 1408,
+      "height": 1120
+    }
+  },
+  {
+    "file": "Screen/inner_screen_content_2x.png",
+    "source_box": {
+      "x": 615,
+      "y": 150,
+      "width": 520,
+      "height": 440
+    },
+    "export_px": {
+      "width": 1040,
+      "height": 880
+    }
+  },
+  {
+    "file": "Screen/preset_display_2x.png",
+    "source_box": {
+      "x": 690,
+      "y": 150,
+      "width": 365,
+      "height": 55
+    },
+    "export_px": {
+      "width": 730,
+      "height": 110
+    }
+  },
+  {
+    "file": "Screen/main_graph_transfer_curve_2x.png",
+    "source_box": {
+      "x": 660,
+      "y": 315,
+      "width": 420,
+      "height": 185
+    },
+    "export_px": {
+      "width": 840,
+      "height": 370
+    }
+  },
+  {
+    "file": "Screen/large_value_68_2x.png",
+    "source_box": {
+      "x": 760,
+      "y": 300,
+      "width": 200,
+      "height": 130
+    },
+    "export_px": {
+      "width": 400,
+      "height": 260
+    }
+  },
+  {
+    "file": "Screen/bottom_toolbar_2x.png",
+    "source_box": {
+      "x": 540,
+      "y": 585,
+      "width": 640,
+      "height": 90
+    },
+    "export_px": {
+      "width": 1280,
+      "height": 180
+    }
+  },
+  {
+    "file": "Screen/mode_buttons_2x.png",
+    "source_box": {
+      "x": 650,
+      "y": 235,
+      "width": 450,
+      "height": 45
+    },
+    "export_px": {
+      "width": 900,
+      "height": 90
+    }
+  },
+  {
+    "file": "Screen/oversampling_buttons_2x.png",
+    "source_box": {
+      "x": 680,
+      "y": 535,
+      "width": 380,
+      "height": 45
+    },
+    "export_px": {
+      "width": 760,
+      "height": 90
+    }
+  },
+  {
+    "file": "Screen/input_meter_2x.png",
+    "source_box": {
+      "x": 570,
+      "y": 270,
+      "width": 65,
+      "height": 250
+    },
+    "export_px": {
+      "width": 130,
+      "height": 500
+    }
+  },
+  {
+    "file": "Screen/output_meter_2x.png",
+    "source_box": {
+      "x": 1130,
+      "y": 270,
+      "width": 65,
+      "height": 250
+    },
+    "export_px": {
+      "width": 130,
+      "height": 500
+    }
+  },
+  {
+    "file": "Screen/bezel_frame_2x.png",
+    "source_box": {
+      "x": 500,
+      "y": 95,
+      "width": 745,
+      "height": 595
+    },
+    "export_px": {
+      "width": 1490,
+      "height": 1190
+    }
+  },
+  {
+    "file": "Buttons/modern_button_selected_2x.png",
+    "source_box": {
+      "x": 650,
+      "y": 240,
+      "width": 90,
+      "height": 34
+    },
+    "export_px": {
+      "width": 180,
+      "height": 68
+    }
+  },
+  {
+    "file": "Buttons/vintage_button_2x.png",
+    "source_box": {
+      "x": 750,
+      "y": 240,
+      "width": 90,
+      "height": 34
+    },
+    "export_px": {
+      "width": 180,
+      "height": 68
+    }
+  },
+  {
+    "file": "Buttons/tube_button_2x.png",
+    "source_box": {
+      "x": 850,
+      "y": 240,
+      "width": 75,
+      "height": 34
+    },
+    "export_px": {
+      "width": 150,
+      "height": 68
+    }
+  },
+  {
+    "file": "Buttons/metal_button_2x.png",
+    "source_box": {
+      "x": 935,
+      "y": 240,
+      "width": 80,
+      "height": 34
+    },
+    "export_px": {
+      "width": 160,
+      "height": 68
+    }
+  },
+  {
+    "file": "Buttons/fuzz_button_2x.png",
+    "source_box": {
+      "x": 1028,
+      "y": 240,
+      "width": 75,
+      "height": 34
+    },
+    "export_px": {
+      "width": 150,
+      "height": 68
+    }
+  },
+  {
+    "file": "Buttons/oversampling_off_2x.png",
+    "source_box": {
+      "x": 675,
+      "y": 535,
+      "width": 85,
+      "height": 36
+    },
+    "export_px": {
+      "width": 170,
+      "height": 72
+    }
+  },
+  {
+    "file": "Buttons/oversampling_2x_2x.png",
+    "source_box": {
+      "x": 775,
+      "y": 535,
+      "width": 85,
+      "height": 36
+    },
+    "export_px": {
+      "width": 170,
+      "height": 72
+    }
+  },
+  {
+    "file": "Buttons/oversampling_4x_selected_2x.png",
+    "source_box": {
+      "x": 875,
+      "y": 535,
+      "width": 85,
+      "height": 36
+    },
+    "export_px": {
+      "width": 170,
+      "height": 72
+    }
+  },
+  {
+    "file": "Buttons/oversampling_8x_2x.png",
+    "source_box": {
+      "x": 975,
+      "y": 535,
+      "width": 85,
+      "height": 36
+    },
+    "export_px": {
+      "width": 170,
+      "height": 72
+    }
+  },
+  {
+    "file": "Buttons/spectrum_icon_selected_2x.png",
+    "source_box": {
+      "x": 560,
+      "y": 600,
+      "width": 100,
+      "height": 70
+    },
+    "export_px": {
+      "width": 200,
+      "height": 140
+    }
+  },
+  {
+    "file": "Buttons/eq_icon_2x.png",
+    "source_box": {
+      "x": 675,
+      "y": 600,
+      "width": 100,
+      "height": 70
+    },
+    "export_px": {
+      "width": 200,
+      "height": 140
+    }
+  },
+  {
+    "file": "Buttons/curve_icon_2x.png",
+    "source_box": {
+      "x": 790,
+      "y": 600,
+      "width": 100,
+      "height": 70
+    },
+    "export_px": {
+      "width": 200,
+      "height": 140
+    }
+  },
+  {
+    "file": "Buttons/cab_icon_2x.png",
+    "source_box": {
+      "x": 905,
+      "y": 600,
+      "width": 100,
+      "height": 70
+    },
+    "export_px": {
+      "width": 200,
+      "height": 140
+    }
+  },
+  {
+    "file": "Buttons/settings_icon_2x.png",
+    "source_box": {
+      "x": 1020,
+      "y": 600,
+      "width": 100,
+      "height": 70
+    },
+    "export_px": {
+      "width": 200,
+      "height": 140
+    }
+  },
+  {
+    "file": "Buttons/menu_button_2x.png",
+    "source_box": {
+      "x": 1130,
+      "y": 158,
+      "width": 42,
+      "height": 46
+    },
+    "export_px": {
+      "width": 84,
+      "height": 92
+    }
+  },
+  {
+    "file": "Sliders/low_cut_vertical_slider_full_2x.png",
+    "source_box": {
+      "x": 1238,
+      "y": 235,
+      "width": 84,
+      "height": 330
+    },
+    "export_px": {
+      "width": 168,
+      "height": 660
+    }
+  },
+  {
+    "file": "Sliders/low_cut_slider_handle_2x.png",
+    "source_box": {
+      "x": 1244,
+      "y": 380,
+      "width": 72,
+      "height": 90
+    },
+    "export_px": {
+      "width": 144,
+      "height": 180
+    }
+  },
+  {
+    "file": "Sliders/high_cut_vertical_slider_full_2x.png",
+    "source_box": {
+      "x": 1328,
+      "y": 235,
+      "width": 84,
+      "height": 330
+    },
+    "export_px": {
+      "width": 168,
+      "height": 660
+    }
+  },
+  {
+    "file": "Sliders/high_cut_slider_handle_2x.png",
+    "source_box": {
+      "x": 1334,
+      "y": 380,
+      "width": 72,
+      "height": 90
+    },
+    "export_px": {
+      "width": 144,
+      "height": 180
+    }
+  },
+  {
+    "file": "Sliders/mix_vertical_slider_full_2x.png",
+    "source_box": {
+      "x": 1418,
+      "y": 235,
+      "width": 84,
+      "height": 330
+    },
+    "export_px": {
+      "width": 168,
+      "height": 660
+    }
+  },
+  {
+    "file": "Sliders/mix_slider_handle_2x.png",
+    "source_box": {
+      "x": 1424,
+      "y": 380,
+      "width": 72,
+      "height": 90
+    },
+    "export_px": {
+      "width": 144,
+      "height": 180
+    }
+  },
+  {
+    "file": "Sliders/level_vertical_slider_full_2x.png",
+    "source_box": {
+      "x": 1503,
+      "y": 235,
+      "width": 84,
+      "height": 330
+    },
+    "export_px": {
+      "width": 168,
+      "height": 660
+    }
+  },
+  {
+    "file": "Sliders/level_slider_handle_2x.png",
+    "source_box": {
+      "x": 1509,
+      "y": 380,
+      "width": 72,
+      "height": 90
+    },
+    "export_px": {
+      "width": 144,
+      "height": 180
+    }
+  },
+  {
+    "file": "Sliders/slider_track_markers_2x.png",
+    "source_box": {
+      "x": 1240,
+      "y": 245,
+      "width": 360,
+      "height": 315
+    },
+    "export_px": {
+      "width": 720,
+      "height": 630
+    }
+  },
+  {
+    "file": "Switches/character_switch_full_2x.png",
+    "source_box": {
+      "x": 1340,
+      "y": 160,
+      "width": 230,
+      "height": 45
+    },
+    "export_px": {
+      "width": 460,
+      "height": 90
+    }
+  },
+  {
+    "file": "Switches/tight_loose_switch_full_2x.png",
+    "source_box": {
+      "x": 1340,
+      "y": 585,
+      "width": 230,
+      "height": 45
+    },
+    "export_px": {
+      "width": 460,
+      "height": 90
+    }
+  },
+  {
+    "file": "Switches/gate_switch_full_2x.png",
+    "source_box": {
+      "x": 1300,
+      "y": 640,
+      "width": 250,
+      "height": 50
+    },
+    "export_px": {
+      "width": 500,
+      "height": 100
+    }
+  },
+  {
+    "file": "Meters/input_meter_full_2x.png",
+    "source_box": {
+      "x": 565,
+      "y": 250,
+      "width": 80,
+      "height": 285
+    },
+    "export_px": {
+      "width": 160,
+      "height": 570
+    }
+  },
+  {
+    "file": "Meters/output_meter_full_2x.png",
+    "source_box": {
+      "x": 1120,
+      "y": 250,
+      "width": 80,
+      "height": 285
+    },
+    "export_px": {
+      "width": 160,
+      "height": 570
+    }
+  },
+  {
+    "file": "LEDs/top_slashes_2x.png",
+    "source_box": {
+      "x": 760,
+      "y": 10,
+      "width": 260,
+      "height": 70
+    },
+    "export_px": {
+      "width": 520,
+      "height": 140
+    }
+  },
+  {
+    "file": "LEDs/left_side_led_2x.png",
+    "source_box": {
+      "x": 35,
+      "y": 230,
+      "width": 75,
+      "height": 375
+    },
+    "export_px": {
+      "width": 150,
+      "height": 750
+    }
+  },
+  {
+    "file": "LEDs/right_side_led_2x.png",
+    "source_box": {
+      "x": 1660,
+      "y": 230,
+      "width": 75,
+      "height": 375
+    },
+    "export_px": {
+      "width": 150,
+      "height": 750
+    }
+  },
+  {
+    "file": "LEDs/bottom_left_led_2x.png",
+    "source_box": {
+      "x": 450,
+      "y": 770,
+      "width": 230,
+      "height": 40
+    },
+    "export_px": {
+      "width": 460,
+      "height": 80
+    }
+  },
+  {
+    "file": "LEDs/bottom_right_led_2x.png",
+    "source_box": {
+      "x": 1085,
+      "y": 770,
+      "width": 230,
+      "height": 40
+    },
+    "export_px": {
+      "width": 460,
+      "height": 80
+    }
+  },
+  {
+    "file": "LEDs/small_red_dot_gate_2x.png",
+    "source_box": {
+      "x": 1462,
+      "y": 662,
+      "width": 35,
+      "height": 35
+    },
+    "export_px": {
+      "width": 70,
+      "height": 70
+    }
+  }
+]
