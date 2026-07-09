@@ -1,5 +1,6 @@
 #pragma once
 #include <JuceHeader.h>
+#include <BinaryData.h>
 #include <map>
 
 // ============================================================================
@@ -60,18 +61,21 @@ namespace ic
     };
 
     // ------------------------------------------------------------------------
-    //  Loads and caches every PNG from the UI package once. Resolves the
-    //  package folder by walking up from a handful of likely roots, so it works
-    //  whether the host launches from the repo, the build tree, or elsewhere.
+    //  Serves each PNG straight from BinaryData (the artwork is compiled into
+    //  the plugin), so there is NO filesystem access at all: the skin loads
+    //  identically from the build tree, Program Files\Common Files\VST3, or a
+    //  customer's machine. Lookup is by the file's basename, which is unique
+    //  across the package. Loaded images are cached on first use.
     // ------------------------------------------------------------------------
     class AssetManager
     {
     public:
-        AssetManager() { root = locatePackage(); }
+        AssetManager() = default;
 
-        bool isValid() const noexcept { return root.isDirectory(); }
+        bool isValid() const noexcept { return BinaryData::namedResourceListSize > 0; }
 
-        // Path is relative to the UI package root, e.g. "Knobs/drive_knob_core_2x.png".
+        // Path is relative to the UI package root, e.g. "Knobs/output_knob_core_2x.png";
+        // only the basename is matched against the embedded resources.
         const juce::Image& get (const juce::String& relativePath)
         {
             auto it = cache.find (relativePath);
@@ -79,39 +83,22 @@ namespace ic
                 return it->second;
 
             juce::Image img;
-            if (root.isDirectory())
+            const auto wanted = relativePath.fromLastOccurrenceOf ("/", false, false);
+            for (int i = 0; i < BinaryData::namedResourceListSize; ++i)
             {
-                const auto f = root.getChildFile (relativePath);
-                if (f.existsAsFile())
-                    img = juce::ImageFileFormat::loadFrom (f);
+                if (wanted == BinaryData::originalFilenames[i])
+                {
+                    int size = 0;
+                    if (const char* data = BinaryData::getNamedResource (BinaryData::namedResourceList[i], size);
+                        data != nullptr && size > 0)
+                        img = juce::ImageFileFormat::loadFrom (data, (size_t) size);
+                    break;
+                }
             }
             return cache.emplace (relativePath, std::move (img)).first->second;
         }
 
     private:
-        static juce::File locatePackage()
-        {
-            const juce::String rel { "images/Ironclad_UI_Implementation_Package" };
-            const juce::File roots[] {
-                juce::File::getCurrentWorkingDirectory(),
-                juce::File::getSpecialLocation (juce::File::currentApplicationFile),
-                juce::File::getSpecialLocation (juce::File::currentExecutableFile),
-                juce::File::getSpecialLocation (juce::File::userHomeDirectory)
-                    .getChildFile ("Desktop").getChildFile ("ironclad")
-            };
-
-            for (auto start : roots)
-                for (auto dir = start; dir.exists(); dir = dir.getParentDirectory())
-                {
-                    const auto candidate = dir.getChildFile (rel);
-                    if (candidate.isDirectory())
-                        return candidate;
-                }
-
-            return {};
-        }
-
-        juce::File root;
         std::map<juce::String, juce::Image> cache;
     };
 
@@ -280,5 +267,73 @@ namespace ic
             g.setColour (juce::Colours::black.withAlpha (0.45f));
             g.fillRect (juce::Rectangle<float> (hr.getX() + 3.0f, hy - 1.0f, hw - 6.0f, 2.0f));
         }
+    };
+
+    // ------------------------------------------------------------------------
+    //  Two-position toggle drawn in code: a pill track with a chrome handle on
+    //  the active side, a red glow under the active half, and a label on each
+    //  side (active = red, inactive = grey). Behaves as a juce::Button so it
+    //  toggles on click and binds through a ButtonAttachment. Replaces the
+    //  *_switch_full mockups, which bake in a static handle position.
+    // ------------------------------------------------------------------------
+    class ToggleSwitch : public juce::Button
+    {
+    public:
+        ToggleSwitch (juce::String leftLabel, juce::String rightLabel)
+            : juce::Button ({}), left (std::move (leftLabel)), right (std::move (rightLabel))
+        {
+            setClickingTogglesState (true);
+        }
+
+        void paintButton (juce::Graphics& g, bool highlighted, bool /*down*/) override
+        {
+            auto b = getLocalBounds().toFloat();
+            const bool on = getToggleState();               // false = left, true = right
+
+            // Pill sized from the component height, centred; labels flank it.
+            const float pillH = juce::jmin (b.getHeight() * 0.60f, b.getWidth() * 0.16f);
+            const float pillW = pillH * 2.3f;
+            juce::Rectangle<float> pill (b.getCentreX() - pillW * 0.5f,
+                                         b.getCentreY() - pillH * 0.5f, pillW, pillH);
+
+            // track + red glow under the active half
+            g.setColour (juce::Colour (0xff0e0e10));
+            g.fillRoundedRectangle (pill, pillH * 0.5f);
+            auto activeHalf = on ? pill.withTrimmedLeft (pillW * 0.5f)
+                                 : pill.withTrimmedRight (pillW * 0.5f);
+            g.setColour (Colours::glowRed.withAlpha (0.85f));
+            g.fillRoundedRectangle (activeHalf.reduced (pillH * 0.14f), pillH * 0.32f);
+            g.setColour (juce::Colours::black.withAlpha (0.6f));
+            g.drawRoundedRectangle (pill.reduced (0.5f), pillH * 0.5f, 1.0f);
+
+            // chrome handle on the active side
+            const float hw = pillW * 0.52f, hh = pillH * 1.18f;
+            juce::Rectangle<float> hr (on ? pill.getRight() - hw : pill.getX(),
+                                       b.getCentreY() - hh * 0.5f, hw, hh);
+            juce::ColourGradient hg (juce::Colour (0xff2b2b2f), hr.getX(), hr.getY(),
+                                     juce::Colour (0xff101012), hr.getX(), hr.getBottom(), false);
+            hg.addColour (0.46, juce::Colour (0xffd6d6db));
+            hg.addColour (0.54, juce::Colour (0xff8a8a90));
+            g.setGradientFill (hg);
+            g.fillRoundedRectangle (hr, hh * 0.28f);
+            g.setColour (juce::Colours::black.withAlpha (highlighted ? 0.4f : 0.7f));
+            g.drawRoundedRectangle (hr, hh * 0.28f, 1.2f);
+
+            // side labels
+            const float fh = juce::jmax (10.0f, b.getHeight() * 0.40f);
+            g.setFont (juce::Font (fh, juce::Font::bold));
+            const int pillL = juce::roundToInt (pill.getX());
+            const int pillR = juce::roundToInt (pill.getRight());
+            g.setColour (on ? Colours::muted : Colours::glowRed);
+            g.drawText (left,  juce::Rectangle<int> (0, 0, pillL - 6, (int) b.getHeight()),
+                        juce::Justification::centredRight, false);
+            g.setColour (on ? Colours::glowRed : Colours::muted);
+            g.drawText (right, juce::Rectangle<int> (pillR + 6, 0,
+                                                     (int) b.getWidth() - pillR - 6, (int) b.getHeight()),
+                        juce::Justification::centredLeft, false);
+        }
+
+    private:
+        juce::String left, right;
     };
 }

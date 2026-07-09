@@ -15,6 +15,7 @@ public:
     void setPeak     (float freq, float q, float gainDb) { design(Peak,   freq, q,      gainDb,  0); }
     void setLowPass  (float freq, float q = 0.707f)      { design(LowP,   freq, q,      0.0f,    0); }
     void setHighPass (float freq, float q = 0.707f)      { design(HighP,  freq, q,      0.0f,    0); }
+    void setBandPass (float freq, float q)               { design(BandP,  freq, q,      0.0f,    0); }
 
     float process(float x)
     {
@@ -27,7 +28,7 @@ public:
     void clear() { x1 = x2 = y1 = y2 = 0.0f; }
 
 private:
-    enum Kind { Shelf, Peak, LowP, HighP };
+    enum Kind { Shelf, Peak, LowP, HighP, BandP };
 
     // `shelfDir` is -1 for a low shelf, +1 for a high shelf, ignored otherwise.
     void design(Kind kind, float freq, float q, float gainDb, int shelfDir)
@@ -78,7 +79,7 @@ private:
             A1 = -2 * cosw;
             A2 =  1 - alpha;
         }
-        else // HighP
+        else if (kind == HighP)
         {
             B0 =  (1 + cosw) / 2;
             B1 = -(1 + cosw);
@@ -86,6 +87,15 @@ private:
             A0 =   1 + alpha;
             A1 =  -2 * cosw;
             A2 =   1 - alpha;
+        }
+        else // BandP (constant 0 dB peak gain)
+        {
+            B0 =  alpha;
+            B1 =  0;
+            B2 = -alpha;
+            A0 =  1 + alpha;
+            A1 = -2 * cosw;
+            A2 =  1 - alpha;
         }
 
         const double inv = 1.0 / A0;

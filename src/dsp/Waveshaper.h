@@ -49,4 +49,10 @@ namespace Waveshaper
             default:     return softClip(x, 0.0f);
         }
     }
+
+    // Power-amp saturation: a gentler, more symmetric stage that sits AFTER the
+    // preamp voicing (shape). Push-pull output tubes largely cancel even harmonics
+    // and compress smoothly, so this is a plain tanh - the character comes from the
+    // preamp; this adds output-stage compression + a little more grind when pushed.
+    inline float powerAmp(float x) { return std::tanh(x); }
 }

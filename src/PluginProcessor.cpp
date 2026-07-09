@@ -74,34 +74,191 @@ juce::AudioProcessorValueTreeState::ParameterLayout IroncladProcessor::createPar
     params.push_back(std::make_unique<juce::AudioParameterBool>(
         juce::ParameterID("GATE", 1), "Gate", false));
 
+    // Oversampling quality selector shown on the screen (Off/2x/4x/8x). Default
+    // 4x. Switching re-rates the engine (real-time safe) and re-reports latency.
+    params.push_back(std::make_unique<juce::AudioParameterChoice>(
+        juce::ParameterID("OVERSAMPLE", 1), "Oversampling",
+        juce::StringArray { "Off", "2x", "4x", "8x" }, 2));
+
+    // CHARACTER: Smooth (false) vs Raw (true) voicing.
+    // TIGHTLOOSE: Tight (false) vs Loose (true) low-end feel.
+    params.push_back(std::make_unique<juce::AudioParameterBool>(
+        juce::ParameterID("CHARACTER", 1), "Character", false));
+
+    params.push_back(std::make_unique<juce::AudioParameterBool>(
+        juce::ParameterID("TIGHTLOOSE", 1), "Tight/Loose", false));
+
+    // Amp "feel" macro: power-amp sag, pick-attack bite, and speaker compression.
+    params.push_back(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID("DYNAMICS", 1), "Dynamics",
+        juce::NormalisableRange<float>(0.0f, 1.0f, 0.01f), 0.5f));
+
+    // Input stage: pickup type (RLC resonance voicing) + amp-input load/brightness.
+    params.push_back(std::make_unique<juce::AudioParameterChoice>(
+        juce::ParameterID("PICKUP", 1), "Pickup",
+        juce::StringArray { "Single", "Humbucker", "Active", "Bass" }, 0));
+    params.push_back(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID("PU_LOAD", 1), "Input Load",
+        juce::NormalisableRange<float>(0.0f, 1.0f, 0.01f), 0.6f));
+
+    // Cabinet: algorithmic voicing (type) + optional external IR that replaces it.
+    params.push_back(std::make_unique<juce::AudioParameterChoice>(
+        juce::ParameterID("CAB", 1), "Cabinet",
+        juce::StringArray { "1x12 Open", "2x12", "4x12 British", "4x12 Modern" }, 0));
+    params.push_back(std::make_unique<juce::AudioParameterBool>(
+        juce::ParameterID("IR_ON", 1), "IR Cab", false));
+
+    // Synthetic feedback: amount, and which harmonic of the played note it sings.
+    params.push_back(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID("FEEDBACK", 1), "Feedback",
+        juce::NormalisableRange<float>(0.0f, 1.0f, 0.01f), 0.0f));
+
+    params.push_back(std::make_unique<juce::AudioParameterChoice>(
+        juce::ParameterID("FBHARMONIC", 1), "Feedback Harmonic",
+        juce::StringArray { "Unison", "Fifth", "Octave" }, 0));
+
+    // --- Delay (post-amp, base rate) -------------------------------------
+    params.push_back(std::make_unique<juce::AudioParameterBool>(
+        juce::ParameterID("DLY_ON", 1), "Delay On", false));
+    params.push_back(std::make_unique<juce::AudioParameterBool>(
+        juce::ParameterID("DLY_SYNC", 1), "Delay Sync", true));
+    params.push_back(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID("DLY_TIME", 1), "Delay Time",
+        juce::NormalisableRange<float>(20.0f, 2000.0f, 1.0f, 0.4f), 350.0f,
+        juce::AudioParameterFloatAttributes().withStringFromValueFunction(
+            [](float v, int) { return juce::String((int) v) + " ms"; })));
+    params.push_back(std::make_unique<juce::AudioParameterChoice>(
+        juce::ParameterID("DLY_DIV", 1), "Delay Division",
+        juce::StringArray { "1/4", "1/8.", "1/8", "1/8T", "1/16" }, 2));
+    params.push_back(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID("DLY_FB", 1), "Delay Feedback",
+        juce::NormalisableRange<float>(0.0f, 0.95f, 0.01f), 0.35f));
+    params.push_back(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID("DLY_TONE", 1), "Delay Tone",
+        juce::NormalisableRange<float>(0.0f, 1.0f, 0.01f), 0.5f));
+    params.push_back(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID("DLY_MIX", 1), "Delay Mix",
+        juce::NormalisableRange<float>(0.0f, 1.0f, 0.01f), 0.28f));
+    params.push_back(std::make_unique<juce::AudioParameterBool>(
+        juce::ParameterID("DLY_PING", 1), "Delay Ping-Pong", false));
+
+    // --- Reverb ----------------------------------------------------------
+    params.push_back(std::make_unique<juce::AudioParameterBool>(
+        juce::ParameterID("RVB_ON", 1), "Reverb On", false));
+    params.push_back(std::make_unique<juce::AudioParameterChoice>(
+        juce::ParameterID("RVB_MODE", 1), "Reverb Mode",
+        juce::StringArray { "Spring", "Plate", "Room", "Hall" }, 0));
+    params.push_back(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID("RVB_SIZE", 1), "Reverb Size",
+        juce::NormalisableRange<float>(0.0f, 1.0f, 0.01f), 0.5f));
+    params.push_back(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID("RVB_DAMP", 1), "Reverb Damping",
+        juce::NormalisableRange<float>(0.0f, 1.0f, 0.01f), 0.5f));
+    params.push_back(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID("RVB_MIX", 1), "Reverb Mix",
+        juce::NormalisableRange<float>(0.0f, 1.0f, 0.01f), 0.25f));
+
+    // --- Chorus ----------------------------------------------------------
+    params.push_back(std::make_unique<juce::AudioParameterBool>(
+        juce::ParameterID("CHO_ON", 1), "Chorus On", false));
+    params.push_back(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID("CHO_RATE", 1), "Chorus Rate",
+        juce::NormalisableRange<float>(0.05f, 8.0f, 0.01f, 0.5f), 0.8f,
+        juce::AudioParameterFloatAttributes().withStringFromValueFunction(
+            [](float v, int) { return juce::String(v, 2) + " Hz"; })));
+    params.push_back(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID("CHO_DEPTH", 1), "Chorus Depth",
+        juce::NormalisableRange<float>(0.0f, 1.0f, 0.01f), 0.5f));
+    params.push_back(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID("CHO_MIX", 1), "Chorus Mix",
+        juce::NormalisableRange<float>(0.0f, 1.0f, 0.01f), 0.35f));
+
+    // --- Compressor / limiter (output bus) -------------------------------
+    params.push_back(std::make_unique<juce::AudioParameterBool>(
+        juce::ParameterID("CMP_ON", 1), "Comp On", false));
+    params.push_back(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID("CMP_THRESH", 1), "Comp Threshold",
+        juce::NormalisableRange<float>(-48.0f, 0.0f, 0.1f), -18.0f,
+        juce::AudioParameterFloatAttributes().withStringFromValueFunction(
+            [](float v, int) { return juce::String(v, 1) + " dB"; })));
+    params.push_back(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID("CMP_RATIO", 1), "Comp Ratio",
+        juce::NormalisableRange<float>(1.0f, 20.0f, 0.1f, 0.5f), 3.0f,
+        juce::AudioParameterFloatAttributes().withStringFromValueFunction(
+            [](float v, int) { return v >= 19.5f ? juce::String("Limit") : juce::String(v, 1) + ":1"; })));
+    params.push_back(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID("CMP_ATTACK", 1), "Comp Attack",
+        juce::NormalisableRange<float>(0.1f, 100.0f, 0.1f, 0.4f), 12.0f,
+        juce::AudioParameterFloatAttributes().withStringFromValueFunction(
+            [](float v, int) { return juce::String(v, 1) + " ms"; })));
+    params.push_back(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID("CMP_RELEASE", 1), "Comp Release",
+        juce::NormalisableRange<float>(10.0f, 1000.0f, 1.0f, 0.4f), 150.0f,
+        juce::AudioParameterFloatAttributes().withStringFromValueFunction(
+            [](float v, int) { return juce::String((int) v) + " ms"; })));
+    params.push_back(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID("CMP_MAKEUP", 1), "Comp Makeup",
+        juce::NormalisableRange<float>(0.0f, 24.0f, 0.1f), 0.0f,
+        juce::AudioParameterFloatAttributes().withStringFromValueFunction(
+            [](float v, int) { return juce::String(v, 1) + " dB"; })));
+    params.push_back(std::make_unique<juce::AudioParameterFloat>(
+        juce::ParameterID("CMP_MIX", 1), "Comp Mix",
+        juce::NormalisableRange<float>(0.0f, 1.0f, 0.01f), 1.0f));
+
     return { params.begin(), params.end() };
 }
 
 namespace
 {
-    // Order matches createParameterLayout() exactly - each FactoryPreset row
-    // below is positional against this list, not looked up by name, so it's
-    // cheap at the cost of needing to stay in sync if params are reordered.
-    // TYPE is stored as its choice index cast to float.
-    constexpr int numPresetParams = 9;
-    const char* const presetParamIDs[numPresetParams] = {
-        "TYPE", "DRIVE", "BASS", "MID", "TREBLE", "PRESENCE", "TIGHT", "MIX", "OUTPUT"
+    struct PP { const char* id; float v; };
+    struct PresetDef { const char* name; const char* category; std::vector<PP> params; };
+
+    // Params a preset is allowed to set. setCurrentProgram resets ALL of these to
+    // their defaults, then applies the preset's overrides below - so presets only
+    // list what DIFFERS from default and there's no bleed between presets. OVERSAMPLE
+    // and LEVEL are user/global and deliberately left out.
+    const char* const managedParamIDs[] = {
+        "TYPE","DRIVE","BASS","MID","TREBLE","PRESENCE","TIGHT","HIGHCUT","MIX","OUTPUT",
+        "GATE","CHARACTER","TIGHTLOOSE","DYNAMICS","PICKUP","PU_LOAD","CAB","FEEDBACK","FBHARMONIC",
+        "DLY_ON","DLY_SYNC","DLY_DIV","DLY_TIME","DLY_FB","DLY_TONE","DLY_MIX","DLY_PING",
+        "RVB_ON","RVB_MODE","RVB_SIZE","RVB_DAMP","RVB_MIX",
+        "CHO_ON","CHO_RATE","CHO_DEPTH","CHO_MIX",
+        "CMP_ON","CMP_THRESH","CMP_RATIO","CMP_ATTACK","CMP_RELEASE","CMP_MAKEUP","CMP_MIX"
     };
 
-    struct FactoryPreset { const char* name; float values[numPresetParams]; };
-
-    //                              TYPE, DRIVE, BASS,  MID,   TREB,  PRES,  TIGHT, MIX,  OUT
-    const FactoryPreset factoryPresets[] = {
-        { "Clean Boost",     { 0.0f, 0.15f,  0.0f,  0.0f,  1.0f,  0.40f, 80.0f,  1.00f, 1.00f } },
-        { "Blues Crunch",    { 1.0f, 0.40f,  2.0f,  2.0f,  1.0f,  0.50f, 90.0f,  1.00f, 1.00f } },
-        { "Classic Rock",    { 1.0f, 0.60f,  1.0f,  3.0f,  2.0f,  0.60f, 100.0f, 1.00f, 1.00f } },
-        { "Lead",            { 2.0f, 0.70f,  0.0f,  4.0f,  2.0f,  0.60f, 110.0f, 1.00f, 1.00f } },
-        { "Modern High Gain",{ 2.0f, 0.80f,  3.0f, -2.0f,  3.0f,  0.70f, 120.0f, 1.00f, 0.90f } },
-        { "Metal Rhythm",    { 2.0f, 0.90f,  4.0f, -3.0f,  4.0f,  0.80f, 150.0f, 1.00f, 0.85f } },
-        { "Fuzz",            { 3.0f, 0.85f,  2.0f,  1.0f,  0.0f,  0.50f, 70.0f,  0.95f, 0.90f } },
-        { "Warm Drive",      { 1.0f, 0.35f,  1.0f,  1.0f,  0.0f,  0.40f, 60.0f,  0.90f, 1.00f } },
-    };
-    constexpr int numFactoryPresets = (int)(sizeof(factoryPresets) / sizeof(FactoryPreset));
+    const std::vector<PresetDef>& presets()
+    {
+        static const std::vector<PresetDef> p = {
+            // ---- Clean ----
+            { "Clean Boost",      "Clean", { {"TYPE",0},{"DRIVE",0.15f},{"TREBLE",1},{"PRESENCE",0.40f} } },
+            { "Studio Clean",     "Clean", { {"TYPE",0},{"DRIVE",0.10f},{"BASS",1},{"TREBLE",2},{"PRESENCE",0.45f},{"CHO_ON",1},{"CHO_MIX",0.22f} } },
+            { "Jangle Verb",      "Clean", { {"TYPE",0},{"DRIVE",0.18f},{"TREBLE",2},{"PRESENCE",0.50f},{"RVB_ON",1},{"RVB_MODE",1},{"RVB_MIX",0.30f} } },
+            { "Funk Snap",        "Clean", { {"TYPE",0},{"DRIVE",0.20f},{"MID",2},{"TREBLE",1},{"DYNAMICS",0.72f} } },
+            // ---- Drive ----
+            { "Blues Crunch",     "Drive", { {"TYPE",1},{"DRIVE",0.40f},{"BASS",2},{"MID",2},{"PRESENCE",0.50f},{"TIGHT",90} } },
+            { "Classic Rock",     "Drive", { {"TYPE",1},{"DRIVE",0.60f},{"MID",3},{"TREBLE",2},{"PRESENCE",0.60f},{"TIGHT",100} } },
+            { "British Crunch",   "Drive", { {"TYPE",1},{"DRIVE",0.55f},{"BASS",1},{"MID",3},{"TREBLE",3},{"PRESENCE",0.60f},{"DLY_ON",1},{"DLY_MIX",0.16f} } },
+            { "Tweed Breakup",    "Drive", { {"TYPE",1},{"DRIVE",0.45f},{"BASS",2},{"MID",1},{"DYNAMICS",0.78f} } },
+            // ---- High Gain ----
+            { "Lead 800",         "High Gain", { {"TYPE",2},{"DRIVE",0.70f},{"MID",4},{"TREBLE",2},{"PRESENCE",0.60f},{"TIGHT",110},{"GATE",1} } },
+            { "Modern High Gain", "High Gain", { {"TYPE",2},{"DRIVE",0.80f},{"BASS",3},{"MID",-2},{"TREBLE",3},{"PRESENCE",0.70f},{"TIGHT",120},{"OUTPUT",0.90f},{"GATE",1} } },
+            { "Metal Rhythm",     "High Gain", { {"TYPE",2},{"DRIVE",0.86f},{"BASS",4},{"MID",-3},{"TREBLE",2.5f},{"PRESENCE",0.62f},{"TIGHT",150},{"OUTPUT",0.85f},{"GATE",1},{"CMP_ON",1},{"CMP_THRESH",-16},{"CMP_RATIO",4},{"CMP_MAKEUP",4} } },
+            { "Djent Chug",       "High Gain", { {"TYPE",2},{"DRIVE",0.82f},{"BASS",3},{"MID",-4},{"TREBLE",3},{"PRESENCE",0.70f},{"TIGHT",180},{"OUTPUT",0.85f},{"GATE",1},{"CHARACTER",1} } },
+            // ---- Fuzz ----
+            { "Classic Fuzz",     "Fuzz", { {"TYPE",3},{"DRIVE",0.85f},{"BASS",2},{"MID",1},{"PRESENCE",0.50f},{"TIGHT",70},{"MIX",0.95f},{"OUTPUT",0.90f},{"GATE",1} } },
+            { "Woolly Fuzz",      "Fuzz", { {"TYPE",3},{"DRIVE",0.90f},{"BASS",4},{"MID",2},{"TREBLE",-2},{"PRESENCE",0.40f},{"OUTPUT",0.85f},{"GATE",1} } },
+            { "Gated Splat",      "Fuzz", { {"TYPE",3},{"DRIVE",0.95f},{"MID",1},{"PRESENCE",0.55f},{"OUTPUT",0.80f},{"GATE",1} } },
+            // ---- Lead ----
+            { "Singing Lead",     "Lead", { {"TYPE",2},{"DRIVE",0.75f},{"MID",4},{"TREBLE",2},{"PRESENCE",0.60f},{"GATE",1},{"FEEDBACK",0.50f},{"DLY_ON",1},{"DLY_MIX",0.24f},{"RVB_ON",1},{"RVB_MIX",0.20f},{"CMP_ON",1},{"CMP_THRESH",-20},{"CMP_RATIO",3},{"CMP_MAKEUP",5} } },
+            { "Feedback Sustain", "Lead", { {"TYPE",2},{"DRIVE",0.80f},{"MID",3},{"PRESENCE",0.65f},{"GATE",1},{"FEEDBACK",0.70f},{"FBHARMONIC",0},{"RVB_ON",1},{"RVB_SIZE",0.75f},{"RVB_MIX",0.32f},{"DLY_ON",1},{"DLY_FB",0.45f},{"DLY_MIX",0.28f} } },
+            { "Harmonic Bloom",   "Lead", { {"TYPE",2},{"DRIVE",0.72f},{"MID",4},{"TREBLE",1},{"GATE",1},{"FEEDBACK",0.60f},{"FBHARMONIC",1},{"DLY_ON",1},{"DLY_DIV",1},{"DLY_MIX",0.26f} } },
+            // ---- Ambient ----
+            { "Ambient Wash",     "Ambient", { {"TYPE",0},{"DRIVE",0.25f},{"TREBLE",2},{"PRESENCE",0.50f},{"CHO_ON",1},{"CHO_MIX",0.30f},{"DLY_ON",1},{"DLY_FB",0.50f},{"DLY_MIX",0.34f},{"RVB_ON",1},{"RVB_MODE",3},{"RVB_SIZE",0.80f},{"RVB_MIX",0.40f} } },
+            { "Post-Rock Swell",  "Ambient", { {"TYPE",1},{"DRIVE",0.40f},{"MID",2},{"PRESENCE",0.55f},{"DLY_ON",1},{"DLY_DIV",0},{"DLY_FB",0.45f},{"DLY_MIX",0.30f},{"RVB_ON",1},{"RVB_MODE",3},{"RVB_MIX",0.35f} } },
+            { "Shimmer Pad",      "Ambient", { {"TYPE",0},{"DRIVE",0.20f},{"TREBLE",3},{"CHO_ON",1},{"CHO_RATE",0.50f},{"CHO_DEPTH",0.70f},{"CHO_MIX",0.40f},{"RVB_ON",1},{"RVB_MODE",3},{"RVB_SIZE",0.90f},{"RVB_MIX",0.45f} } },
+        };
+        return p;
+    }
 }
 
 const juce::String IroncladProcessor::getName() const { return JucePlugin_Name; }
@@ -109,28 +266,46 @@ bool IroncladProcessor::acceptsMidi() const { return false; }
 bool IroncladProcessor::producesMidi() const { return false; }
 bool IroncladProcessor::isMidiEffect() const { return false; }
 double IroncladProcessor::getTailLengthSeconds() const { return 0.0; }
-int IroncladProcessor::getNumPrograms() { return numFactoryPresets; }
+int IroncladProcessor::getNumPrograms() { return (int) presets().size(); }
 int IroncladProcessor::getCurrentProgram() { return currentProgramIndex; }
 
 void IroncladProcessor::setCurrentProgram(int index)
 {
-    if (index < 0 || index >= numFactoryPresets)
+    if (index < 0 || index >= (int) presets().size())
         return;
 
     currentProgramIndex = index;
-    const auto& preset = factoryPresets[index];
-    for (int i = 0; i < numPresetParams; ++i)
-    {
-        if (auto* param = apvts.getParameter(presetParamIDs[i]))
-            param->setValueNotifyingHost(param->convertTo0to1(preset.values[i]));
-    }
+
+    // Reset every preset-managed param to its default, then apply this preset's
+    // overrides - so presets only specify what differs and nothing bleeds over.
+    for (auto* id : managedParamIDs)
+        if (auto* p = apvts.getParameter(id))
+            p->setValueNotifyingHost(p->getDefaultValue());
+
+    for (const auto& pv : presets()[(size_t) index].params)
+        if (auto* p = apvts.getParameter(pv.id))
+            p->setValueNotifyingHost(p->convertTo0to1(pv.v));
 }
 
 const juce::String IroncladProcessor::getProgramName(int index)
 {
-    if (index < 0 || index >= numFactoryPresets)
+    if (index < 0 || index >= (int) presets().size())
         return {};
-    return factoryPresets[index].name;
+    return presets()[(size_t) index].name;
+}
+
+juce::StringArray IroncladProcessor::getPresetCategories() const
+{
+    juce::StringArray cats;
+    for (const auto& pr : presets()) cats.addIfNotAlreadyThere(pr.category);
+    return cats;
+}
+
+juce::String IroncladProcessor::getProgramCategory(int index) const
+{
+    if (index < 0 || index >= (int) presets().size())
+        return {};
+    return presets()[(size_t) index].category;
 }
 
 void IroncladProcessor::changeProgramName(int, const juce::String&) {}
@@ -138,10 +313,85 @@ void IroncladProcessor::changeProgramName(int, const juce::String&) {}
 void IroncladProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
 {
     currentSampleRate = sampleRate;
-    engine.prepare(sampleRate, samplesPerBlock);
+    baseSampleRate    = sampleRate;
+    baseBlockSize     = samplesPerBlock;
+
+    // Pitch tracking runs at the base rate on the dry input (cheaper, and pitch
+    // needs no oversampling); it aims the feedback bloom.
+    pitch.prepare(sampleRate);
+    monoBuf.assign((size_t) juce::jmax(1, samplesPerBlock), 0.0f);
+
+    chorus.prepare(sampleRate);
+    delay.prepare(sampleRate, 2.0);
+    reverb.prepare(sampleRate, samplesPerBlock, 2);
+    comp.prepare(sampleRate);
+
+    cabConv.prepare({ sampleRate, (juce::uint32) samplesPerBlock, 2 });
+    cabConv.reset();
+    if (irPath.isNotEmpty()) loadIR(juce::File(irPath));   // restore IR after state load
+
+    for (int i = 0; i < kNumOS; ++i)
+    {
+        oversamplers[i] = std::make_unique<juce::dsp::Oversampling<float>>(
+            2, (size_t) osStages(i),
+            juce::dsp::Oversampling<float>::filterHalfBandPolyphaseIIR);
+        oversamplers[i]->initProcessing((size_t) samplesPerBlock);
+        oversamplers[i]->reset();
+    }
+
+    activeOS = (int) apvts.getRawParameterValue("OVERSAMPLE")->load();
+    configureEngineForOS(activeOS);
+
+    // Tell the host how much delay the oversampling filters add (reported at the
+    // base rate) so it can latency-compensate and stay phase-aligned.
+    setLatencySamples((int) std::lround(oversamplers[activeOS]->getLatencyInSamples()));
 }
 
-void IroncladProcessor::releaseResources() {}
+// Re-rate the engine's filters/gate for the given oversampling factor. Only sets
+// sample rates and clears state (no allocation, no locks), so it is safe to call
+// from the audio thread when the on-screen selector changes.
+void IroncladProcessor::configureEngineForOS(int idx)
+{
+    const int ratio = osRatio(idx);
+    engine.prepare(baseSampleRate * ratio, baseBlockSize * ratio);
+}
+
+void IroncladProcessor::handleAsyncUpdate()
+{
+    setLatencySamples(pendingLatency.load());
+}
+
+void IroncladProcessor::releaseResources()
+{
+    for (auto& os : oversamplers)
+        if (os != nullptr)
+            os->reset();
+}
+
+double IroncladProcessor::getHostBpm()
+{
+    if (auto* ph = getPlayHead())
+        if (auto pos = ph->getPosition())
+            if (auto bpm = pos->getBpm())
+                if (*bpm > 0.0)
+                    return *bpm;
+    return 120.0;
+}
+
+void IroncladProcessor::loadIR(const juce::File& f)
+{
+    if (! f.existsAsFile()) { clearIR(); return; }
+    cabConv.loadImpulseResponse(f, juce::dsp::Convolution::Stereo::yes,
+                                juce::dsp::Convolution::Trim::yes, 0);
+    irPath  = f.getFullPathName();
+    irReady = true;
+}
+
+void IroncladProcessor::clearIR()
+{
+    irReady = false;
+    irPath  = {};
+}
 
 bool IroncladProcessor::isBusesLayoutSupported(const BusesLayout& layouts) const
 {
@@ -161,6 +411,17 @@ void IroncladProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::Mid
     for (int ch = totalIn; ch < totalOut; ++ch)
         buffer.clear(ch, 0, buffer.getNumSamples());
 
+    // Track the clean input pitch before the engine overwrites the buffer.
+    {
+        const int   ns  = buffer.getNumSamples();
+        const auto* L   = buffer.getReadPointer(0);
+        const auto* R   = buffer.getReadPointer(totalIn > 1 ? 1 : 0);
+        const int   cap = juce::jmin(ns, (int) monoBuf.size());
+        for (int i = 0; i < cap; ++i) monoBuf[(size_t) i] = 0.5f * (L[i] + R[i]);
+        pitch.process(monoBuf.data(), cap);
+        engine.setFeedbackTarget(pitch.getFrequency(), pitch.getConfidence());
+    }
+
     DistortionParams dp;
     dp.type     = (int) apvts.getRawParameterValue("TYPE")->load();
     dp.drive    = apvts.getRawParameterValue("DRIVE")->load();
@@ -174,11 +435,112 @@ void IroncladProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::Mid
     dp.output   = apvts.getRawParameterValue("OUTPUT")->load();
     dp.level    = juce::Decibels::decibelsToGain(apvts.getRawParameterValue("LEVEL")->load());
     dp.gate     = apvts.getRawParameterValue("GATE")->load() > 0.5f;
+    dp.raw      = apvts.getRawParameterValue("CHARACTER")->load() > 0.5f;
+    dp.loose    = apvts.getRawParameterValue("TIGHTLOOSE")->load() > 0.5f;
+    dp.dynamics   = apvts.getRawParameterValue("DYNAMICS")->load();
+    dp.pickupType = (int) apvts.getRawParameterValue("PICKUP")->load();
+    dp.pickupLoad = apvts.getRawParameterValue("PU_LOAD")->load();
+    dp.cabType    = (int) apvts.getRawParameterValue("CAB")->load();
+    dp.cabBypass  = (apvts.getRawParameterValue("IR_ON")->load() > 0.5f) && irReady.load();
+    dp.feedback = apvts.getRawParameterValue("FEEDBACK")->load();
+    {
+        const int h = (int) apvts.getRawParameterValue("FBHARMONIC")->load();
+        dp.fbRatio  = (h == 1 ? 1.5f : (h == 2 ? 2.0f : 1.0f)); // Unison/Fifth/Octave
+    }
+
+    // Apply an on-screen oversampling change (re-rate engine + re-report latency).
+    const int want = (int) apvts.getRawParameterValue("OVERSAMPLE")->load();
+    if (want != activeOS)
+    {
+        activeOS = want;
+        configureEngineForOS(activeOS);   // RT-safe (no allocation)
+        pendingLatency.store((int) std::lround(oversamplers[activeOS]->getLatencyInSamples()));
+        triggerAsyncUpdate();             // setLatencySamples() on the message thread
+    }
 
     engine.setParameters(dp);
-    engine.processBlock(buffer.getWritePointer(0),
-                        buffer.getWritePointer(1),
-                        buffer.getNumSamples());
+
+    if (osRatio(activeOS) == 1)
+    {
+        // Oversampling Off: run the chain at the base rate.
+        engine.processBlock(buffer.getWritePointer(0),
+                            buffer.getWritePointer(1),
+                            buffer.getNumSamples());
+    }
+    else
+    {
+        // Upsample -> run the whole chain (waveshaper included) -> downsample.
+        auto& os = *oversamplers[activeOS];
+        juce::dsp::AudioBlock<float> block(buffer);
+        auto osBlock = os.processSamplesUp(block);
+        engine.processBlock(osBlock.getChannelPointer(0),
+                            osBlock.getChannelPointer(1),
+                            (int) osBlock.getNumSamples());
+        os.processSamplesDown(block);
+    }
+
+    // --- Cabinet IR (replaces the algorithmic cab, which the engine skipped) ---
+    if (dp.cabBypass)
+    {
+        juce::dsp::AudioBlock<float> cabBlock(buffer);
+        juce::dsp::ProcessContextReplacing<float> cabCtx(cabBlock);
+        cabConv.process(cabCtx);
+    }
+
+    // --- Post-amp FX (base rate): chorus -> delay -> reverb --------------
+    auto* fxL = buffer.getWritePointer(0);
+    auto* fxR = buffer.getWritePointer(1);
+    const int fxN = buffer.getNumSamples();
+
+    if (apvts.getRawParameterValue("CHO_ON")->load() > 0.5f)
+    {
+        chorus.setParameters(apvts.getRawParameterValue("CHO_RATE")->load(),
+                             apvts.getRawParameterValue("CHO_DEPTH")->load(),
+                             apvts.getRawParameterValue("CHO_MIX")->load());
+        chorus.processBlock(fxL, fxR, fxN);
+    }
+
+    if (apvts.getRawParameterValue("DLY_ON")->load() > 0.5f)
+    {
+        float timeSamples;
+        if (apvts.getRawParameterValue("DLY_SYNC")->load() > 0.5f)
+        {
+            static const float qn[5] = { 1.0f, 0.75f, 0.5f, 1.0f / 3.0f, 0.25f }; // 1/4,1/8.,1/8,1/8T,1/16
+            const int div = (int) apvts.getRawParameterValue("DLY_DIV")->load();
+            timeSamples = (float) (60.0 / getHostBpm() * qn[div] * baseSampleRate);
+        }
+        else
+        {
+            timeSamples = apvts.getRawParameterValue("DLY_TIME")->load() * 0.001f * (float) baseSampleRate;
+        }
+        const float tone = apvts.getRawParameterValue("DLY_TONE")->load();
+        delay.setParameters(timeSamples,
+                            apvts.getRawParameterValue("DLY_FB")->load(),
+                            1000.0f * std::pow(16.0f, tone),   // 0..1 -> 1k..16k
+                            apvts.getRawParameterValue("DLY_MIX")->load(),
+                            apvts.getRawParameterValue("DLY_PING")->load() > 0.5f);
+        delay.processBlock(fxL, fxR, fxN);
+    }
+
+    if (apvts.getRawParameterValue("RVB_ON")->load() > 0.5f)
+    {
+        reverb.setParameters((int) apvts.getRawParameterValue("RVB_MODE")->load(),
+                             apvts.getRawParameterValue("RVB_SIZE")->load(),
+                             apvts.getRawParameterValue("RVB_DAMP")->load(),
+                             apvts.getRawParameterValue("RVB_MIX")->load());
+        reverb.processBlock(fxL, fxR, fxN);
+    }
+
+    if (apvts.getRawParameterValue("CMP_ON")->load() > 0.5f)
+    {
+        comp.setParameters(apvts.getRawParameterValue("CMP_THRESH")->load(),
+                           apvts.getRawParameterValue("CMP_RATIO")->load(),
+                           apvts.getRawParameterValue("CMP_ATTACK")->load(),
+                           apvts.getRawParameterValue("CMP_RELEASE")->load(),
+                           apvts.getRawParameterValue("CMP_MAKEUP")->load(),
+                           apvts.getRawParameterValue("CMP_MIX")->load());
+        comp.processBlock(fxL, fxR, fxN);
+    }
 
     if (! license.isActivated())
         applyDemoMute(buffer);
@@ -216,6 +578,7 @@ void IroncladProcessor::applyDemoMute(juce::AudioBuffer<float>& buffer)
 
 void IroncladProcessor::getStateInformation(juce::MemoryBlock& destData)
 {
+    apvts.state.setProperty("irPath", irPath, nullptr);   // remember the loaded cab IR
     auto state = apvts.copyState();
     std::unique_ptr<juce::XmlElement> xml(state.createXml());
     copyXmlToBinary(*xml, destData);
@@ -225,7 +588,12 @@ void IroncladProcessor::setStateInformation(const void* data, int sizeInBytes)
 {
     std::unique_ptr<juce::XmlElement> xml(getXmlFromBinary(data, sizeInBytes));
     if (xml != nullptr && xml->hasTagName(apvts.state.getType()))
+    {
         apvts.replaceState(juce::ValueTree::fromXml(*xml));
+        irPath = apvts.state.getProperty("irPath", "").toString();
+        if (irPath.isNotEmpty() && getSampleRate() > 0.0)
+            loadIR(juce::File(irPath));   // if already prepared; else prepareToPlay does it
+    }
 }
 
 bool IroncladProcessor::hasEditor() const { return true; }
