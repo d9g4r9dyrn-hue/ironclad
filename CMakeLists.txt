@@ -35,6 +35,7 @@ juce_generate_juce_header(Ironclad)
 set(ICLAD_UI images/Ironclad_UI_Implementation_Package)
 juce_add_binary_data(IroncladAssets
     SOURCES
+        images/guitar_types_2_cut.png
         ${ICLAD_UI}/Knobs/output_knob_core_2x.png
         ${ICLAD_UI}/Knobs/drive_knob_core_2x.png
         ${ICLAD_UI}/Screen/bezel_frame_2x.png

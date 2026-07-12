@@ -31,6 +31,16 @@ private:
     };
     std::array<Knob, 6> knobs;
 
+    // ---- LEFT panel tabs: PEDAL FX (amp knobs + flanger/phaser) vs GUITAR ----
+    int leftTab = 0;                              // 0 = Pedal FX, 1 = Guitar
+    std::array<juce::TextButton, 2> leftTabs;
+    void updateLeftTabVisibility();
+    void hideSecondaryForRedesign();   // Pass 1: park controls that move to centre pages
+    void paintLeftTabs(juce::Graphics&);
+    void paintPedalFxTab(juce::Graphics&);
+    void paintGuitarTab(juce::Graphics&);
+    juce::Rectangle<float> leftTabSrc(int i) const;
+
     // ---- vertical sliders (4) ---------------------------------------------
     struct Fader
     {
@@ -44,8 +54,22 @@ private:
     // ---- on-screen preset + distortion-mode steppers -----------------------
     juce::TextButton presetPrev { "<" }, presetNext { ">" };
     juce::TextButton typePrev    { "<" }, typeNext    { ">" };
-    juce::ComboBox   categoryBox;                 // preset category dropdown
+    juce::ComboBox   categoryBox;                 // preset category dropdown (hidden; menu used instead)
+    juce::TextButton presetMenuBtn;               // hamburger -> preset picker popup
     void syncCategoryBox();
+    void showPresetMenu();
+
+    // ---- centre-screen navigation pages (mockup icon nav) ------------------
+    enum Nav { NavDistortion = 0, NavEffects, NavAnalysis, NavCabinet, NavSettings };
+    int navPage = 0;
+    float inMeterDb = -100.0f, outMeterDb = -100.0f;   // smoothed meter levels (timer)
+    std::array<juce::TextButton, 5> navBtns;
+    int fxSel = 0;                                // selected effect on the Effects page
+    std::array<juce::TextButton, 7> fxSelBtns;    // DYN/CHO/FLG/PHS/DLY/RVB/CMP
+    void updateNavVisibility();
+    void paintNavContent(juce::Graphics&);
+    juce::Rectangle<float> navIconSrc(int i) const;
+    juce::Rectangle<float> fxTabSrc(int i) const;
 
     // ---- on-screen OVERSAMPLING selector (Off/2x/4x/8x) --------------------
     std::array<juce::TextButton, 4> osButtons;
@@ -81,6 +105,23 @@ private:
     juce::TextButton irOnBtn, irLoadBtn, irClearBtn;
     SKnob puLoadKnob;
     std::unique_ptr<juce::FileChooser> fileChooser;
+
+    // ---- PEDAL FX tab: flanger + phaser (left panel, bottom strip) --------
+    std::array<SKnob, 4> flgKnobs;    // RATE, DEPTH, FBACK, MIX
+    std::array<SKnob, 4> phsKnobs;    // RATE, DEPTH, FBACK, MIX
+    juce::TextButton flgOnBtn, phsOnBtn;
+
+    // ---- GUITAR tab: type dropdown (icon menu) + big photo + 4 knobs ------
+    std::array<Knob, 4> gtrKnobs;     // MODEL, OUTPUT, BODY, BRIGHT
+    juce::TextButton guitarSelectBtn; // transparent hit-zone over the drawn dropdown
+    juce::Image guitarSheet;                          // the 7-row reference sheet
+    std::array<juce::Image, 7> gtrIcon, gtrPhoto;     // per-type sub-images
+    void showGuitarMenu();
+    int  currentGuitarType() const;
+    static juce::Rectangle<int> gtrIconSrc(int i);
+    static juce::Rectangle<int> gtrPhotoSrc(int i);
+    static const char* guitarName(int i);
+    static const char* guitarBlurb(int i);
 
     void setupSKnob(SKnob&, const juce::String& paramID, const juce::String& label,
                     juce::Rectangle<float> box);
@@ -118,6 +159,10 @@ private:
     void cycleType(int direction);
 
     void paintChrome(juce::Graphics&);
+    // ---- mockup-aligned chassis (1536x576 design space) --------------------
+    void paintChassis(juce::Graphics&);
+    void paintRedPanel(juce::Graphics&, const juce::Path& designPath);
+    juce::Path makePanelPath(bool left) const;
     void paintWordmark(juce::Graphics&);
     void paintLabels(juce::Graphics&);
     void paintScreen(juce::Graphics&);

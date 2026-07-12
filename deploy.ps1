@@ -3,7 +3,7 @@
 # The critical step is DELETING the destination bundle before copying. If the
 # dest dir already exists, `Copy-Item -Recurse "src\Ironclad.vst3" "dst\Ironclad.vst3"`
 # copies the source folder as a CHILD (dst\Ironclad.vst3\Ironclad.vst3\...) and
-# leaves the top-level DLL FL loads untouched — so every rebuild after the first
+# leaves the top-level DLL FL loads untouched -- so every rebuild after the first
 # silently fails to reach FL. `-Force` does not fix this. Deleting first makes the
 # copy create the bundle correctly. (Closing FL is also good hygiene: a loaded DLL
 # can't be overwritten.) Finally we verify src/dst DLL sizes match.
@@ -34,5 +34,5 @@ $dstDll = Get-Item (Join-Path $dst $dll)
 if ($srcDll.Length -eq $dstDll.Length) {
     Write-Host "Deployed OK: $($dstDll.Length) bytes, $($dstDll.LastWriteTime)" -ForegroundColor Green
 } else {
-    throw "SIZE MISMATCH — copy did not land. src=$($srcDll.Length)  dst=$($dstDll.Length)"
+    throw "SIZE MISMATCH -- copy did not land. src=$($srcDll.Length)  dst=$($dstDll.Length)"
 }

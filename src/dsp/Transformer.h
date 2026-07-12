@@ -16,7 +16,7 @@ class Transformer
 {
 public:
     void prepare(double sampleRate) { fs = sampleRate; clear(); }
-    void clear() { xPrev = 0.0f; dirSm = 0.0f; }
+    void clear() { xPrev = 0.0f; dirSm = 0.0f; env = 0.0f; }
 
     void setAmount(float a)   // 0..1
     {
@@ -35,11 +35,16 @@ public:
         // direction in silence, so the loop relaxes to zero instead of a DC offset.
         const float dirT = (dx > 1.0e-5f) ? 1.0f : (dx < -1.0e-5f ? -1.0f : 0.0f);
         dirSm += 0.04f * (dirT - dirSm);
-        return std::tanh(drive * (x - width * dirSm)) * invDrive;
+        // Fade the hysteresis bias in with level: at low signal (clean tones) the
+        // direction bias otherwise adds a faint high-freq chatter. Real transformer
+        // hysteresis is negligible until the core is driven anyway.
+        env += (std::abs(x) > env ? 0.02f : 0.001f) * (std::abs(x) - env);
+        const float lvl = std::min(env * 12.0f, 1.0f);   // ~full above ~-18 dBFS
+        return std::tanh(drive * (x - width * dirSm * lvl)) * invDrive;
     }
 
 private:
     double fs = 44100.0;
     float amount = 0.0f, drive = 1.0f, width = 0.0f, invDrive = 1.0f;
-    float xPrev = 0.0f, dirSm = 0.0f;
+    float xPrev = 0.0f, dirSm = 0.0f, env = 0.0f;
 };

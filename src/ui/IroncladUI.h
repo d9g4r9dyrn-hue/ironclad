@@ -17,16 +17,23 @@
 
 namespace ic
 {
-    constexpr float kBaseW = 1774.0f;
-    constexpr float kBaseH = 887.0f;
+    // Canonical design space matches the mockup faceplate proportions (~2.65:1).
+    constexpr float kBaseW = 1536.0f;
+    constexpr float kBaseH = 576.0f;
 
-    // ---- design colours (from the package palette) -------------------------
+    // ---- design colours (from the component-sheet palette) -----------------
     namespace Colours
     {
-        const juce::Colour glowRed   { 0xffff2a2a };
-        const juce::Colour label     { 0xffe0e0e4 };
-        const juce::Colour screenBg  { 0xff0d0d0f };
-        const juce::Colour muted      { 0xffa8a8a8 };
+        const juce::Colour glowRed    { 0xffff2a2a };   // GLOW RED
+        const juce::Colour darkRed     { 0xffc4121b };   // DARK RED
+        const juce::Colour brushedRed { 0xff8b1119 };   // BRUSHED RED
+        const juce::Colour blackMetal { 0xff0d0d0f };   // BLACK METAL
+        const juce::Colour darkGray    { 0xff1a1a1d };   // DARK GRAY
+        const juce::Colour gunmetal    { 0xff2b2b31 };   // GUNMETAL
+        const juce::Colour chrome      { 0xffc7c7cc };   // CHROME
+        const juce::Colour label      { 0xffe0e0e4 };   // LIGHT SILVER
+        const juce::Colour screenBg   { 0xff0d0d0f };
+        const juce::Colour muted       { 0xff9a9a9f };
     }
 
     // ------------------------------------------------------------------------
@@ -57,6 +64,13 @@ namespace ic
         juce::Rectangle<int> map (const juce::Rectangle<float>& r) const
         {
             return map (r.getX(), r.getY(), r.getWidth(), r.getHeight());
+        }
+
+        // Design-space -> screen-space transform, for painting juce::Path shapes
+        // (angled panels) that map() can't express as a rectangle.
+        juce::AffineTransform getTransform() const
+        {
+            return juce::AffineTransform::scale (scale).translated (offX, offY);
         }
     };
 
@@ -151,6 +165,20 @@ namespace ic
             const float angle = juce::jmap (prop, 0.0f, 1.0f, kMinAngle, kMaxAngle);
 
             const float clipR = side * 0.5f * kCapClip;
+
+            // Opaque metallic body so the panel texture never shows through the
+            // (partly transparent) cap sprite, plus a soft drop shadow for depth.
+            g.setColour (juce::Colours::black.withAlpha (0.35f));
+            g.fillEllipse (centre.x - clipR, centre.y - clipR + boxHalf * 0.06f,
+                           clipR * 2.0f, clipR * 2.0f);
+            juce::ColourGradient body (juce::Colour (0xff232327), centre.x, centre.y - clipR,
+                                       juce::Colour (0xff070708), centre.x, centre.y + clipR, false);
+            g.setGradientFill (body);
+            g.fillEllipse (centre.x - clipR, centre.y - clipR, clipR * 2.0f, clipR * 2.0f);
+            g.setColour (juce::Colours::black.withAlpha (0.8f));
+            g.drawEllipse (centre.x - clipR, centre.y - clipR, clipR * 2.0f, clipR * 2.0f,
+                           juce::jmax (1.0f, boxHalf * 0.03f));
+
             juce::Path clip;
             clip.addEllipse (centre.x - clipR, centre.y - clipR, clipR * 2.0f, clipR * 2.0f);
 
@@ -166,14 +194,15 @@ namespace ic
         }
 
     private:
-        // Static amp-style tick ring, concentric with the (recentred) cap.
+        // Subtle amp-style tick ring: short, thin, low-contrast marks hugging the
+        // knob (the mockup uses restrained ticks, not prominent clock-hands).
         void paintTicks (juce::Graphics& g, juce::Point<float> c, float half)
         {
             constexpr int   n   = 11;
-            const float r1 = half * 0.80f, r2 = half * 0.96f;
-            const float w  = juce::jmax (1.0f, half * 0.035f);
+            const float r1 = half * 0.90f, r2 = half * 1.0f;
+            const float w  = juce::jmax (1.0f, half * 0.018f);
 
-            g.setColour (juce::Colours::white.withAlpha (0.82f));
+            g.setColour (juce::Colours::white.withAlpha (0.42f));
             for (int i = 0; i < n; ++i)
             {
                 const float t = (float) i / (float) (n - 1);
@@ -217,55 +246,54 @@ namespace ic
         {
             auto  b       = getLocalBounds().toFloat();
             const float cx = b.getCentreX();
-            const float trackW = juce::jmax (4.0f, b.getWidth() * 0.16f);
-            const float margin = b.getHeight() * 0.055f;
+            const float trackW = juce::jmax (5.0f, b.getWidth() * 0.34f);
+            const float margin = b.getHeight() * 0.045f;
             const float top = b.getY() + margin, bot = b.getBottom() - margin;
 
             const float prop = (float) valueToProportionOfLength (getValue());
             const float hy   = juce::jmap (prop, 0.0f, 1.0f, bot, top);
 
-            // --- channel ---
+            // --- dark recessed channel ---
             juce::Rectangle<float> track (cx - trackW * 0.5f, top, trackW, bot - top);
-            g.setColour (juce::Colour (0xff0e0e10));
+            g.setColour (juce::Colour (0xff090909));
             g.fillRoundedRectangle (track, trackW * 0.5f);
-            g.setColour (juce::Colours::black.withAlpha (0.6f));
+            g.setColour (juce::Colours::black.withAlpha (0.7f));
             g.drawRoundedRectangle (track.reduced (0.5f), trackW * 0.5f, 1.0f);
 
-            // --- red-glow fill from handle down to the bottom ---
-            juce::Rectangle<float> fill (cx - trackW * 0.5f, hy, trackW, bot - hy);
-            juce::ColourGradient grad (Colours::glowRed, cx, bot,
-                                       Colours::glowRed.withAlpha (0.25f), cx, hy, false);
-            g.setGradientFill (grad);
-            g.fillRoundedRectangle (fill, trackW * 0.5f);
-
-            // --- tick ladder ---
-            const int   nt = 11;
-            const float tickInner = trackW * 0.5f + b.getWidth() * 0.06f;
-            const float tickOuter = tickInner + b.getWidth() * 0.10f;
-            g.setColour (juce::Colours::white.withAlpha (0.42f));
+            // --- small red tick marks behind the track ---
+            const int   nt = 9;
+            const float tickX = trackW * 0.5f + b.getWidth() * 0.10f;
+            g.setColour (Colours::glowRed.withAlpha (0.28f));
             for (int i = 0; i < nt; ++i)
             {
                 const float y = juce::jmap ((float) i / (nt - 1), top + 2.0f, bot - 2.0f);
-                g.drawLine (cx - tickOuter, y, cx - tickInner, y, 1.0f);
-                g.drawLine (cx + tickInner, y, cx + tickOuter, y, 1.0f);
+                g.drawLine (cx - tickX - b.getWidth() * 0.06f, y, cx - tickX, y, 1.0f);
+                g.drawLine (cx + tickX, y, cx + tickX + b.getWidth() * 0.06f, y, 1.0f);
             }
 
-            // --- chrome handle ---
-            const float hw = b.getWidth() * 0.66f;
-            const float hh = juce::jmax (10.0f, b.getHeight() * 0.072f);
-            juce::Rectangle<float> hr (cx - hw * 0.5f, hy - hh * 0.5f, hw, hh);
+            // --- fine red illuminated centre line (brighter below the cap) ---
+            const float lineW = juce::jmax (1.5f, trackW * 0.22f);
+            g.setColour (Colours::glowRed.withAlpha (0.20f));
+            g.fillRoundedRectangle (cx - lineW * 0.5f, top, lineW, bot - top, lineW * 0.5f);
+            juce::ColourGradient glow (Colours::glowRed.withAlpha (0.9f), cx, bot,
+                                       Colours::glowRed.withAlpha (0.25f), cx, hy, false);
+            g.setGradientFill (glow);
+            g.fillRoundedRectangle (cx - lineW * 0.5f, hy, lineW, bot - hy, lineW * 0.5f);
 
-            juce::ColourGradient hg (juce::Colour (0xff2b2b2f), cx, hr.getY(),
-                                     juce::Colour (0xff101012), cx, hr.getBottom(), false);
-            hg.addColour (0.46, juce::Colour (0xffd6d6db));
-            hg.addColour (0.54, juce::Colour (0xff8a8a90));
+            // --- chrome/black slider cap ---
+            const float hw = b.getWidth() * 0.86f;
+            const float hh = juce::jmax (12.0f, b.getHeight() * 0.058f);
+            juce::Rectangle<float> hr (cx - hw * 0.5f, hy - hh * 0.5f, hw, hh);
+            juce::ColourGradient hg (juce::Colour (0xff26262a), cx, hr.getY(),
+                                     juce::Colour (0xff0c0c0e), cx, hr.getBottom(), false);
+            hg.addColour (0.44, juce::Colour (0xffd0d0d6));
+            hg.addColour (0.56, juce::Colour (0xff7f7f86));
             g.setGradientFill (hg);
-            g.fillRoundedRectangle (hr, hh * 0.26f);
-            g.setColour (juce::Colours::black.withAlpha (0.7f));
-            g.drawRoundedRectangle (hr, hh * 0.26f, 1.2f);
-            // centre grip line
-            g.setColour (juce::Colours::black.withAlpha (0.45f));
-            g.fillRect (juce::Rectangle<float> (hr.getX() + 3.0f, hy - 1.0f, hw - 6.0f, 2.0f));
+            g.fillRoundedRectangle (hr, hh * 0.24f);
+            g.setColour (juce::Colours::black.withAlpha (0.75f));
+            g.drawRoundedRectangle (hr, hh * 0.24f, 1.0f);
+            g.setColour (juce::Colours::black.withAlpha (0.4f));
+            g.fillRect (juce::Rectangle<float> (hr.getX() + 3.0f, hy - 0.5f, hw - 6.0f, 1.5f));
         }
     };
 

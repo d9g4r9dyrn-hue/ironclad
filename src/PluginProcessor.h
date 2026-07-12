@@ -5,6 +5,8 @@
 #include "dsp/Delay.h"
 #include "dsp/Reverb.h"
 #include "dsp/Chorus.h"
+#include "dsp/Flanger.h"
+#include "dsp/Phaser.h"
 #include "dsp/Compressor.h"
 #include "LicenseManager.h"
 
@@ -48,6 +50,11 @@ public:
     // Licensing: the editor drives activation and reads state for its UI.
     LicenseManager& getLicense() noexcept { return license; }
 
+    // Metering: per-block peak (linear) of the input and output, read by the
+    // editor's timer for the on-screen level meters. Ballistics live in the editor.
+    float getInputPeak()  const noexcept { return inPeak.load(std::memory_order_relaxed); }
+    float getOutputPeak() const noexcept { return outPeak.load(std::memory_order_relaxed); }
+
     // Cab IR loading (driven by the editor's file chooser).
     void loadIR(const juce::File&);
     void clearIR();
@@ -70,8 +77,14 @@ private:
     juce::String irPath;
     std::atomic<bool> irReady { false };
 
-    // Post-amp effects (base rate): chorus -> delay -> reverb -> compressor bus.
+    // Per-block input/output peak for the on-screen meters (audio thread writes).
+    std::atomic<float> inPeak { 0.0f }, outPeak { 0.0f };
+
+    // Post-amp effects (base rate): chorus -> flanger -> phaser -> delay -> reverb
+    // -> compressor bus.
     Chorus chorus;
+    Flanger flanger;
+    Phaser phaser;
     StereoDelay delay;
     ReverbFx reverb;
     Compressor comp;

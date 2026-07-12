@@ -2,6 +2,7 @@
 #include "Biquad.h"
 #include "Waveshaper.h"
 #include "PickupStage.h"
+#include "GuitarSource.h"
 #include "Transformer.h"
 #include <algorithm>
 #include <cmath>
@@ -29,6 +30,12 @@ struct DistortionParams
     float pickupLoad = 0.6f;    // 0..1 amp-input load / brightness
     int   cabType    = 0;       // 0=1x12 Open, 1=2x12, 2=4x12 British, 3=4x12 Modern
     bool  cabBypass  = false;   // true when an external IR replaces the algorithmic cab
+    // Guitar source model (front of chain): archetype + character depth + user trims.
+    int   guitarType   = 0;     // GuitarSource::Type 0..6
+    float gtrModel     = 0.4f;  // 0..1 how strongly the archetype colours the sound
+    float gtrOutputDb  = 0.0f;  // source output trim, dB
+    float gtrBody      = 0.5f;  // 0..1 low-mid body (0.5 neutral)
+    float gtrBright    = 0.5f;  // 0..1 source brightness (0.5 neutral)
 };
 
 // Stereo-linked noise gate placed ahead of the drive stage, so hiss is silenced
@@ -205,7 +212,17 @@ public:
         if (sustaining && ! prevSustaining) { climb = 0.0f; if (voiced) relatch(); }
         prevSustaining = sustaining;
 
-        const float target = (sustaining && pendingFreq > 0.0f) ? amount : 0.0f;
+        // Real feedback strength scales with how hard the note drives the amp:
+        // as the string decays, loop gain falls below unity and the feedback
+        // dies WITH the note. Track that continuously instead of holding the
+        // bloom at full 'amount' until inEnv trips the release floor -- that
+        // binary latch left the synthetic bloom (a pitched, amp-distorted tone)
+        // exposed above the near-silent note on a long sustain -> release, so it
+        // re-emerged as a "pop" of the note coming back. loopGain ramps 0->1
+        // across the tail so the bloom fades smoothly under the decaying string.
+        float loopGain = (inEnv - 0.020f) * (1.0f / (0.070f - 0.020f));
+        loopGain = std::clamp(loopGain, 0.0f, 1.0f);
+        const float target = (sustaining && pendingFreq > 0.0f) ? amount * loopGain : 0.0f;
         bloomEnv += (target > bloomEnv ? bloomAtk : bloomRel) * (target - bloomEnv);
 
         // Climb while sustaining. A moving raised window over the harmonic ladder
@@ -281,6 +298,7 @@ public:
         sr = sampleRate;
         for (auto& c : chans)
         {
+            c.gtr.setSampleRate(sr);
             c.pickup.setSampleRate(sr);
             c.tightHP.setSampleRate(sr);
             c.focus.setSampleRate(sr);
@@ -297,9 +315,18 @@ public:
             c.highCut.setSampleRate(sr);
             c.xfmr.prepare(sr);
         }
-        // Fast follower driving the dynamic (level-dependent) transfer curve.
-        dynAtk = 1.0f - std::exp(-1.0f / (float) (0.001 * sr));  //  1 ms
+        // Follower driving the dynamic (level-dependent) transfer curve. Attack
+        // eased 1 -> 4 ms: the curve subtracts shape(bias) per sample to stay DC-free,
+        // so a fast-moving bias injected a little HF "crackle" that was masked by grind
+        // but audible on clean tones. 4 ms keeps the dynamic feel without the fizz.
+        dynAtk = 1.0f - std::exp(-1.0f / (float) (0.004 * sr));  //  4 ms
         dynRel = 1.0f - std::exp(-1.0f / (float) (0.050 * sr));  // 50 ms
+        // Tail hush: a fixed ~3.6 kHz one-pole and a level follower used to roll off
+        // the highs only as a note decays, so the amplified noise floor doesn't hiss
+        // in the sustain while playing stays fully bright.
+        tailLpA    = 1.0f - std::exp(-2.0f * 3.14159265f * 3600.0f / (float) sr);
+        tailEnvAtk = 1.0f - std::exp(-1.0f / (float) (0.003 * sr));  //   3 ms
+        tailEnvRel = 1.0f - std::exp(-1.0f / (float) (0.180 * sr));  // 180 ms
         gate.prepare(sr);
         ampDyn.prepare(sr);
         spkComp.prepare(sr);
@@ -317,6 +344,7 @@ public:
     {
         for (auto& c : chans)
         {
+            c.gtr.clear();
             c.pickup.clear();
             c.tightHP.clear();
             c.focus.clear();
@@ -334,6 +362,7 @@ public:
             c.xfmr.clear();
             c.dc.clear();
             c.dynEnv = 0.0f;
+            c.tailLp = 0.0f; c.tailEnv = 0.0f;
         }
         gate.clear();
         ampDyn.clear();
@@ -348,11 +377,13 @@ public:
 
         const float tight = std::clamp(p.tight, 20.0f, 500.0f);
         const float hiCut = std::clamp(p.highCut, 1000.0f, 20000.0f);
-        // Presence knob (0..1) maps to a 0..+9 dB high shelf around 4.5 kHz.
-        const float presDb = p.presence * 9.0f;
-        // TIGHT/LOOSE adds a pre-drive low shelf: Tight is flat/focused, Loose
-        // pushes more low end into the waveshaper for a fatter, looser feel.
-        const float focusDb = p.loose ? 3.5f : 0.0f;
+        // Presence knob (0..1) maps to a 0..+6 dB high shelf around 4.5 kHz.
+        // (Was +9 dB, which pushed the 4-5 kHz "presence" region into shrillness.)
+        const float presDb = p.presence * 6.0f;
+        // Pre-drive low shelf for BODY. Tight is now FLAT (the old always-on +1.5 dB
+        // baseline muddied clean tones and pushed low-mids into the clipper); Loose
+        // still adds a fatter low end for those who want it.
+        const float focusDb = p.loose ? 3.0f : 0.0f;
         // Cabinet voicing per type: a low resonance (thump), a cone-BREAKUP peak in
         // the upper mids (the speaker "honk" that a plain low-pass can't give), and
         // a roll-off. CHARACTER (Raw) opens the roll-off for more edge.
@@ -368,18 +399,22 @@ public:
 
         for (auto& c : chans)
         {
+            c.gtr.setParameters(p.guitarType, p.gtrModel, p.gtrOutputDb, p.gtrBody, p.gtrBright);
             c.pickup.setParameters(p.pickupType, p.pickupLoad);
             c.tightHP.setHighPass(tight, 0.707f);
-            c.focus.setLowShelf(180.0f, focusDb);
+            c.focus.setLowShelf(200.0f, focusDb);
             // Pre-emphasis brightens what hits the clipper (so distortion is more
             // articulate); a highpass couples the two stages (tube coupling cap,
-            // tightens the lows before the power stage); post-emphasis tilts most of
-            // the pre-emphasis back, leaving a touch of extra presence in the grind.
-            c.preEmph.setHighShelf(1200.0f, 4.5f);
-            c.interHP.setHighPass(150.0f, 0.707f);
-            c.postEmph.setHighShelf(1200.0f, -3.0f);
-            // Output transformer pushes harder in Raw (more saturation + hysteresis).
-            c.xfmr.setAmount(p.raw ? 0.45f : 0.30f);
+            // tightens the lows before the power stage); post-emphasis tilts the
+            // pre-emphasis back. Pre-emphasis eased 3.5 -> 2.0 dB so far less HF is
+            // driven into the clipper (cleaner, less fizz); interstage HP raised
+            // 120 -> 160 Hz to tighten the low end (de-mud).
+            c.preEmph.setHighShelf(1200.0f, 2.0f);
+            c.interHP.setHighPass(160.0f, 0.707f);
+            c.postEmph.setHighShelf(1200.0f, -2.0f);
+            // Output transformer: lighter always-on saturation (was 0.30/0.45) so it
+            // colours the grind without dirtying clean tones.
+            c.xfmr.setAmount(p.raw ? 0.34f : 0.20f);
             c.bass.setLowShelf(120.0f, p.bass);
             c.mid.setPeak(750.0f, 0.7f, p.mid);
             c.treble.setHighShelf(3000.0f, p.treble);
@@ -396,7 +431,9 @@ public:
         // Amp feel: sag/pick and speaker compression scale with the DYNAMICS macro.
         ampDyn.setAmount(p.dynamics);
         spkComp.setAmount(p.dynamics);
-        feedback.setAmount(p.feedback);
+        // Feedback sensitivity is guitar-dependent (semi-hollows/single-cuts bloom
+        // more readily; tight moderns less) - scale the amount by the source model.
+        feedback.setAmount(std::min(1.0f, p.feedback * chans[0].gtr.getFeedbackSens()));
         feedback.setRatio(p.fbRatio);
         // Raw runs the waveshaper a little hotter for more grind.
         gain = Waveshaper::driveGain(p.type, p.drive) * (p.raw ? 1.2f : 1.0f);
@@ -448,12 +485,14 @@ public:
 private:
     struct Channel
     {
+        GuitarSource gtr;
         PickupStage pickup;
         Biquad   tightHP, focus, preEmph, interHP, postEmph, bass, mid, treble, presence,
                  cabRes, cabBreak, cab, highCut;
         Transformer xfmr;
         DCBlocker dc;
         float    dynEnv = 0.0f;   // per-channel level follower for the dynamic transfer curve
+        float    tailLp = 0.0f, tailEnv = 0.0f;   // tail-hush one-pole state + level follower
     };
 
     // One channel through the amp: pre-drive filters -> dynamic drive gain ->
@@ -461,7 +500,8 @@ private:
     // Returns the wet signal before makeup/mix/level (done stereo-linked outside).
     float processWet(Channel& c, float in, float dyn)
     {
-        float x = c.pickup.process(in);   // pickup RLC resonance + amp-input load
+        float x = c.gtr.process(in);      // guitar source model (archetype conditioning)
+        x = c.pickup.process(x);          // pickup RLC resonance + amp-input load
         x = c.tightHP.process(x);
         x = c.focus.process(x);
         x = c.preEmph.process(x);         // pre-emphasis
@@ -496,6 +536,15 @@ private:
             x = c.cab.process(x);
         }
         x = c.highCut.process(x);
+
+        // Tail hush: blend toward a darker (low-passed) version as the note decays,
+        // so the amplified noise floor stops hissing in the sustain. Full brightness
+        // while the note is above ~-30 dB; at most ~55% darkening in the quiet tail.
+        c.tailLp += tailLpA * (x - c.tailLp);
+        const float ae = std::abs(x);
+        c.tailEnv += (ae > c.tailEnv ? tailEnvAtk : tailEnvRel) * (ae - c.tailEnv);
+        const float bright = std::min(c.tailEnv * 32.0f, 1.0f);
+        x -= (1.0f - bright) * 0.55f * (x - c.tailLp);
         return x;
     }
 
@@ -508,9 +557,10 @@ private:
     float  gain = 1.0f;
     float  preStaticGain = 1.0f, powerStaticGain = 1.0f;   // drive split preamp/power
     float  dynAtk = 0.0f, dynRel = 0.0f;                   // dynamic-curve follower coeffs
+    float  tailLpA = 0.0f, tailEnvAtk = 0.0f, tailEnvRel = 0.0f;   // tail-hush coeffs
     float  prevWetMono = 0.0f;
     double sr   = 44100.0;
     static constexpr float kOutTrim  = 0.6f;   // base gain-staging trim (transformer also tames peaks)
-    static constexpr float kDynBias  = 0.35f;  // max level-dependent bias (dynamic curve depth)
+    static constexpr float kDynBias  = 0.24f;  // max level-dependent bias (dynamic curve depth; eased for cleaner tones)
     static constexpr float kDynRef   = 0.30f;  // playing level at which the dynamic bias saturates
 };

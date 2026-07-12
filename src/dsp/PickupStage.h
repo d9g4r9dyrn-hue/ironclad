@@ -25,13 +25,17 @@ public:
     // low = darker, loaded (damped peak, earlier roll-off).
     void setParameters(int type, float load)
     {
+        // Peaks eased (was up to +4.5 dB Q2.0 @5 kHz): that sharp presence-region
+        // resonance stacked with the guitar-source model and amplified the input
+        // noise floor into audible hiss on sustained/decaying notes. The guitar
+        // source now carries the pickup character, so this stays gentle.
         float fRes, q, peakDb, rollHz, g;
         switch (type)
         {
-            case Humbucker: fRes = 2900.0f; q = 1.6f; peakDb = 3.0f; rollHz = 6500.0f;  g = 1.35f; break;
-            case Active:    fRes = 6000.0f; q = 0.8f; peakDb = 1.5f; rollHz = 11000.0f; g = 1.50f; break;
-            case Bass:      fRes = 1600.0f; q = 1.2f; peakDb = 2.5f; rollHz = 4500.0f;  g = 1.20f; break;
-            default:        fRes = 5000.0f; q = 2.0f; peakDb = 4.5f; rollHz = 8500.0f;  g = 1.00f; break; // Single
+            case Humbucker: fRes = 2900.0f; q = 1.2f; peakDb = 2.0f; rollHz = 6500.0f;  g = 1.35f; break;
+            case Active:    fRes = 6000.0f; q = 0.7f; peakDb = 1.0f; rollHz = 11000.0f; g = 1.50f; break;
+            case Bass:      fRes = 1600.0f; q = 1.0f; peakDb = 2.0f; rollHz = 4500.0f;  g = 1.20f; break;
+            default:        fRes = 5000.0f; q = 1.3f; peakDb = 2.5f; rollHz = 8500.0f;  g = 1.00f; break; // Single
         }
         const float l = std::clamp(load, 0.0f, 1.0f);
         fRes   *= 0.85f + 0.30f * l;   // load nudges the resonance up

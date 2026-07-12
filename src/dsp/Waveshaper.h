@@ -30,11 +30,11 @@ namespace Waveshaper
     {
         switch (mode)
         {
-            case Clean:  return 1.0f + drive *  6.0f;
+            case Clean:  return 1.0f + drive *  3.0f;   // stays clean at low drive (edge-of-breakup only near max)
             case Crunch: return 1.0f + drive * 16.0f;
             case Lead:   return 1.0f + drive * 40.0f;
             case Fuzz:   return 1.0f + drive * 80.0f;
-            default:     return 1.0f + drive *  6.0f;
+            default:     return 1.0f + drive *  3.0f;
         }
     }
 
